@@ -312,6 +312,12 @@ public:
     */
     virtual int getXRunCount() const noexcept;
 
+
+    /** SMODE passive reset request outside ui thread (dlrd/Smode-Issues#3737)
+    */
+    virtual int isResetRequested() const noexcept;
+    virtual void performReset();
+
     //==============================================================================
 protected:
     /** Creates a device, setting its name and type member variables. */

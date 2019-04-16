@@ -462,13 +462,16 @@ private:
         while (! threadShouldExit())
         {
             jassert (socket != nullptr);
-            auto ready = socket->waitUntilReady (true, 100);
+            auto ready = socket->waitUntilReady (true, /* SMODE 100 */ 0);
 
             if (ready < 0 || threadShouldExit())
                 return;
 
             if (ready == 0)
-                continue;
+            { 
+              realtimeListeners.call([&](OSCReceiver::Listener<OSCReceiver::RealtimeCallback>& l) { l.oscThreadIdle(); }); // SMODE call idle callback 
+              continue;
+            }
 
             auto bytesRead = (size_t) socket->read (oscBuffer.getData(), bufferSize, false);
 

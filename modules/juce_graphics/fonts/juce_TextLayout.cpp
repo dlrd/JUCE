@@ -62,6 +62,7 @@ TextLayout::Run::Run (Range<int> range, int numGlyphsToPreallocate)
 TextLayout::Run::Run (const Run& other)
     : font (other.font),
       colour (other.colour),
+      link (other.link), // SMODE
       glyphs (other.glyphs),
       stringRange (other.stringRange)
 {
@@ -296,7 +297,7 @@ void TextLayout::createLayoutWithBalancedLineLengths (const AttributedString& te
         auto longest  = jmax (line1, line2);
         auto prop = shortest > 0 ? longest / shortest : 1.0f;
 
-        if (prop > 0.9f && prop < 1.1f)
+        if (prop > 0.9f /* SMODE regression from Juce 5 port (dlrd/Smode-Issues#3807): && prop < 1.1f*/)
             return;
 
         if (prop > bestLineProportion)
@@ -317,8 +318,8 @@ namespace TextLayoutHelpers
 {
     struct Token
     {
-        Token (const String& t, const Font& f, Colour c, bool whitespace)
-            : text (t), font (f), colour (c),
+        Token (const String& t, const Font& f, Colour c, const String& l, const bool whitespace)
+            : text (t), font (f), colour (c), link (l) /* SMODE */,
               area (font.getStringWidthFloat (t), f.getHeight()),
               isWhitespace (whitespace),
               isNewLine (t.containsChar ('\n') || t.containsChar ('\r'))
@@ -327,6 +328,7 @@ namespace TextLayoutHelpers
         const String text;
         const Font font;
         const Colour colour;
+        const String link; // SMODE
         Rectangle<float> area;
         int line;
         float lineHeight;
@@ -453,6 +455,7 @@ namespace TextLayoutHelpers
             glyphRun->stringRange = { start, end };
             glyphRun->font = t.font;
             glyphRun->colour = t.colour;
+            glyphRun->link = t.link; // SMODE
             glyphLine.ascent  = jmax (glyphLine.ascent,  t.font.getAscent());
             glyphLine.descent = jmax (glyphLine.descent, t.font.getDescent());
             glyphLine.runs.add (glyphRun);
@@ -466,7 +469,7 @@ namespace TextLayoutHelpers
             return CharacterFunctions::isWhitespace (c) ? 2 : 1;
         }
 
-        void appendText (const String& stringText, const Font& font, Colour colour)
+        void appendText (const String& stringText, const Font& font, Colour colour, const String& link /* SMODE */)
         {
             auto t = stringText.getCharPointer();
             String currentString;
@@ -484,7 +487,7 @@ namespace TextLayoutHelpers
                 if (charType == 0 || charType != lastCharType)
                 {
                     if (currentString.isNotEmpty())
-                        tokens.add (new Token (currentString, font, colour,
+                        tokens.add (new Token (currentString, font, colour, link /* SMODE */,
                                                lastCharType == 2 || lastCharType == 0));
 
                     currentString = String::charToString (c);
@@ -501,7 +504,7 @@ namespace TextLayoutHelpers
             }
 
             if (currentString.isNotEmpty())
-                tokens.add (new Token (currentString, font, colour, lastCharType == 2));
+                tokens.add (new Token (currentString, font, colour, link /* SMODE */, lastCharType == 2));
         }
 
         void layoutRuns (float maxWidth, float extraLineSpacing, AttributedString::WordWrap wordWrap)
@@ -561,7 +564,7 @@ namespace TextLayoutHelpers
                 auto& attr = text.getAttribute (i);
 
                 appendText (text.getText().substring (attr.range.getStart(), attr.range.getEnd()),
-                            attr.font, attr.colour);
+                            attr.font, attr.colour, attr.link /* SMODE */);
             }
         }
 

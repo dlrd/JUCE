@@ -582,8 +582,10 @@ void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
         for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
         {
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstUnicastAddress);
+            /* SMODE do not populate anycast nor multicast addresses for now
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstAnycastAddress);
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstMulticastAddress);
+            */
         }
     }
 }

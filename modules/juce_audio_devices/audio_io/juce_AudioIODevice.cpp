@@ -34,6 +34,8 @@ void AudioIODeviceCallback::audioDeviceError (const String&)    {}
 bool AudioIODevice::setAudioPreprocessingEnabled (bool)         { return false; }
 bool AudioIODevice::hasControlPanel() const                     { return false; }
 int  AudioIODevice::getXRunCount() const noexcept               { return -1; }
+int  AudioIODevice::isResetRequested() const noexcept           { return false; } // SMODE (dlrd/Smode-Issues#3737)
+void AudioIODevice::performReset()                              {} // SMODE (dlrd/Smode-Issues#3737)
 
 bool AudioIODevice::showControlPanel()
 {

@@ -612,6 +612,7 @@ bool StreamingSocket::isLocal() const noexcept
 //==============================================================================
 //==============================================================================
 DatagramSocket::DatagramSocket (bool canBroadcast)
+  : allowBroadcast(canBroadcast) // SMODE
 {
     SocketHelpers::initSockets();
 
@@ -655,9 +656,16 @@ bool DatagramSocket::bindToPort (int port, const String& addr)
 {
     jassert (SocketHelpers::isValidPortNumber (port));
 
-    if (handle < 0)
-        return false;
-
+    if (handle < 0) // SMODE socket has been previously shutdown
+    {
+      handle = (int)socket(AF_INET, SOCK_DGRAM, 0);
+      if (handle >= 0)
+      {
+        SocketHelpers::resetSocketOptions(handle, true, allowBroadcast);
+        SocketHelpers::makeReusable(handle);
+      }
+   }
+   
     if (SocketHelpers::bindSocket (handle, port, addr))
     {
         isBound = true;

@@ -192,7 +192,8 @@ public:
     void addItem (int itemResultID,
                   const String& itemText,
                   bool isEnabled = true,
-                  bool isTicked = false);
+                  bool isTicked = false,
+                  const String& annotation = String()); /**SMODE add custom annotation who override shortcutKeyDescription */ 
 
     /** Appends a new item with an icon.
 
@@ -286,7 +287,8 @@ public:
     */
     void addCustomItem (int itemResultID,
                         CustomComponent* customComponent,
-                        const PopupMenu* optionalSubMenu = nullptr);
+                        const PopupMenu* optionalSubMenu = nullptr, 
+                        bool isEnabled = true); // SMODE: added isEnabled
 
     /** Appends a custom menu item that can't be used to trigger a result.
 
@@ -517,6 +519,10 @@ public:
     void showMenuAsync (const Options& options,
                         std::function<void(int)> callback);
 
+    // SMODE
+    Component* showMenuAsyncAndGetComponent(const Options& options,
+                        ModalComponentManager::Callback* callback);
+
     //==============================================================================
     /** Closes any menus that are currently open.
 
@@ -625,6 +631,11 @@ public:
 
         /** Destructor. */
         ~CustomComponent() override;
+
+        // SMODE
+        virtual bool shouldShowSubMenu() const
+          {return true;}
+        //
 
         /** Returns a rectangle with the size that this component would like to have.
 
@@ -745,6 +756,11 @@ public:
 
         virtual int getPopupMenuBorderSize() = 0;
     };
+
+    // SMODE
+    int showWithOptionalCallbackAndGetComponent (const Options&, ModalComponentManager::Callback*, bool, Component**);
+    Component* getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback,
+      const bool canBeModal);
 
 private:
     //==============================================================================

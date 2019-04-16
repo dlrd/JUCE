@@ -122,6 +122,9 @@ public:
             The default implementation provided here will simply do nothing.
         */
         virtual void oscBundleReceived (const OSCBundle& /*bundle*/) {}
+
+
+        virtual void oscThreadIdle() {} // SMODE callback when receiver thread is idle
     };
 
     //==============================================================================

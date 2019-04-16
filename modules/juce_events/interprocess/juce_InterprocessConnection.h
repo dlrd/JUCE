@@ -175,6 +175,9 @@ public:
     */
     virtual void messageReceived (const MemoryBlock& message) = 0;
 
+    // SMODE: Writee Messages callback
+    virtual bool hasMessagesToWrite() const { return false; }
+    virtual bool sendMessagesToWrite() { return true; }
 
 private:
     //==============================================================================
@@ -195,6 +198,7 @@ private:
     void deliverDataInt (const MemoryBlock&);
     bool readNextMessage();
     int readData (void*, int);
+    bool writeNextMessage(); // SMODE
 
     struct ConnectionThread;
     std::unique_ptr<ConnectionThread> thread;

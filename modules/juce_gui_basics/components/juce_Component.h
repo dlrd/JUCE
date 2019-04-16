@@ -940,7 +940,7 @@ public:
                     instead call getComponentAt on the top-level parent of this component.
         @see hitTest, contains, reallyContains
     */
-    Component* getComponentAt (Point<int> position);
+    Component* getComponentAt (Point<int> position, Component* excludedChild = nullptr); // SMODE: added excludedChild
 
     //==============================================================================
     /** Marks the whole component as needing to be redrawn.

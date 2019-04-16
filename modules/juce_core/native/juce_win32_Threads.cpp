@@ -67,9 +67,10 @@ void JUCE_API juce_threadEntryPoint (void*);
 
 static unsigned int __stdcall threadEntryProc (void* userData)
 {
-    if (juce_messageWindowHandle != 0)
-        AttachThreadInput (GetWindowThreadProcessId (juce_messageWindowHandle, 0),
-                           GetCurrentThreadId(), TRUE);
+    // SMODE (dlrd/Smode-Issues#3541) avoid keyboard attachment on other thread who can freeze os when many juce thread are running.
+    //if (juce_messageWindowHandle != 0)
+    //    AttachThreadInput (GetWindowThreadProcessId (juce_messageWindowHandle, 0),
+    //                       GetCurrentThreadId(), TRUE);
 
     juce_threadEntryPoint (userData);
 
@@ -242,11 +243,12 @@ void* JUCE_CALLTYPE Process::getCurrentModuleInstanceHandle() noexcept
 {
     if (currentModuleHandle == nullptr)
     {
-        auto status = GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+      /* SMODE of course Juce is built as a DLL but application is not a plugin: it is the hosting application (SMODE), this avoid to call setCurrentModuleInstanceHandle at boot
+      auto status = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                          (LPCTSTR) &currentModuleHandle,
                                          (HMODULE*) &currentModuleHandle);
 
-        if (status == 0 || currentModuleHandle == nullptr)
+        if (status == 0 || currentModuleHandle == nullptr)  SMODE */
             currentModuleHandle = GetModuleHandleA (nullptr);
     }
 

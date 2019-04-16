@@ -361,6 +361,7 @@ private:
     int lastServerPort = -1;
     void* lastServerAddress = nullptr;
     mutable CriticalSection readLock;
+    bool allowBroadcast; // SMODE
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DatagramSocket)
 };

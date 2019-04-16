@@ -75,7 +75,7 @@ namespace
             auto& a1 = atts.getReference (i);
             auto& a2 = atts.getReference (i + 1);
 
-            if (a1.colour == a2.colour && a1.font == a2.font)
+            if (a1.colour == a2.colour && a1.font == a2.font /** SMODE */&& a1.link == a2.link)
             {
                 a1.range.setEnd (a2.range.getEnd());
                 atts.remove (i + 1);
@@ -87,19 +87,19 @@ namespace
     }
 
     void appendRange (Array<AttributedString::Attribute>& atts,
-                      int length, const Font* f, const Colour* c)
+                      int length, const Font* f, const Colour* c, const String* l /** SMODE */)
     {
         if (atts.size() == 0)
         {
-            atts.add ({ Range<int> (0, length), f != nullptr ? *f : Font(), c != nullptr ? *c : Colour (0xff000000) });
+            atts.add ({ Range<int> (0, length), f != nullptr ? *f : Font(), c != nullptr ? *c : Colour (0xff000000), /* SMODE */ l != nullptr ? *l : String() });
         }
         else
         {
             auto start = getLength (atts);
             atts.add ({ Range<int> (start, start + length),
-                        f != nullptr ? *f : atts.getReference (atts.size() - 1).font,
-                        c != nullptr ? *c : atts.getReference (atts.size() - 1).colour });
-
+                                                   f != nullptr ? *f : atts.getReference (atts.size() - 1).font,
+                                                   c != nullptr ? *c : atts.getReference (atts.size() - 1).colour,
+                                                   l != nullptr ? *l : atts.getReference (atts.size() - 1).link /* SMODE */});
             mergeAdjacentRanges (atts);
         }
     }
@@ -138,7 +138,8 @@ namespace
 AttributedString::Attribute::Attribute (Attribute&& other) noexcept
     : range (other.range),
       font (std::move (other.font)),
-      colour (other.colour)
+      colour (other.colour),
+      link (other.link) // SMODE
 {
 }
 
@@ -147,11 +148,12 @@ AttributedString::Attribute& AttributedString::Attribute::operator= (Attribute&&
     range = other.range;
     font = std::move (other.font);
     colour = other.colour;
+    link = other.link; // SMODE
     return *this;
 }
 
-AttributedString::Attribute::Attribute (Range<int> r, const Font& f, Colour c) noexcept
-    : range (r), font (f), colour (c)
+AttributedString::Attribute::Attribute (Range<int> r, const Font& f, Colour c, const String& l /* SMODE */) noexcept
+    : range (r), font (f), colour (c),/* SMODE */ link (l) 
 {
 }
 
@@ -184,7 +186,7 @@ void AttributedString::setText (const String& newText)
     auto oldLength = getLength (attributes);
 
     if (newLength > oldLength)
-        appendRange (attributes, newLength - oldLength, nullptr, nullptr);
+        appendRange (attributes, newLength - oldLength, nullptr, nullptr, /* SMODE */nullptr);
     else if (newLength < oldLength)
         truncate (attributes, newLength);
 
@@ -194,26 +196,34 @@ void AttributedString::setText (const String& newText)
 void AttributedString::append (const String& textToAppend)
 {
     text += textToAppend;
-    appendRange (attributes, textToAppend.length(), nullptr, nullptr);
+    appendRange (attributes, textToAppend.length(), nullptr, nullptr, /* SMODE */ nullptr);
 }
 
 void AttributedString::append (const String& textToAppend, const Font& font)
 {
     text += textToAppend;
-    appendRange (attributes, textToAppend.length(), &font, nullptr);
+    appendRange (attributes, textToAppend.length(), &font, nullptr, /* SMODE */ nullptr);
 }
 
 void AttributedString::append (const String& textToAppend, Colour colour)
 {
     text += textToAppend;
-    appendRange (attributes, textToAppend.length(), nullptr, &colour);
+    appendRange (attributes, textToAppend.length(), nullptr, &colour, /* SMODE */ nullptr);
 }
 
 void AttributedString::append (const String& textToAppend, const Font& font, Colour colour)
 {
     text += textToAppend;
-    appendRange (attributes, textToAppend.length(), &font, &colour);
+    appendRange (attributes, textToAppend.length(), &font, &colour, /* SMODE */ nullptr);
 }
+
+// SMODE
+void AttributedString::append(const String& textToAppend, const Font& font, Colour colour, const String& link)
+{
+  text += textToAppend;
+  appendRange(attributes, textToAppend.length(), &font, &colour, &link);
+}
+// SMODE
 
 void AttributedString::append (const AttributedString& other)
 {

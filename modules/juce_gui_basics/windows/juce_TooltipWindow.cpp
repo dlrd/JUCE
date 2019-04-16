@@ -97,7 +97,7 @@ void TooltipWindow::displayTip (Point<int> screenPos, const String& tip)
             addToDesktop (ComponentPeer::windowHasDropShadow
                             | ComponentPeer::windowIsTemporary
                             | ComponentPeer::windowIgnoresKeyPresses
-                            | ComponentPeer::windowIgnoresMouseClicks);
+                            /* SMODE: flag added in Juce 4.3.0 create invisible tooltips issues | ComponentPeer::windowIgnoresMouseClicks*/);
         }
 
        #if JUCE_DEBUG

@@ -333,13 +333,44 @@ bool InterprocessConnection::readNextMessage()
     return false;
 }
 
+// SMODE
+bool InterprocessConnection::writeNextMessage()
+{
+    bool res = sendMessagesToWrite();
+    if (!res)
+    {
+        if (socket != nullptr)
+            deletePipeAndSocket();
+
+          connectionLostInt();
+    }
+    return res;
+}
+// SMODE
+
 void InterprocessConnection::runThread()
 {
     while (! thread->threadShouldExit())
     {
+        bool somethingToRead = false;
+        bool somethingToWrite = false;
         if (socket != nullptr)
         {
-            auto ready = socket->waitUntilReady (true, 100);
+            // SMODE Add Writting system
+            if (hasMessagesToWrite())
+            {
+              const int ready = socket->waitUntilReady(false, 0);
+              if (ready < 0)
+              {
+                deletePipeAndSocket();
+                connectionLostInt();
+                break;
+              }
+              if (ready != 0)
+                somethingToWrite = true;
+            }
+
+            const int ready = socket->waitUntilReady (true, 0);
 
             if (ready < 0)
             {
@@ -350,9 +381,14 @@ void InterprocessConnection::runThread()
 
             if (ready == 0)
             {
-                thread->wait (1);
-                continue;
+                if (!somethingToWrite) // SMODE
+                {
+                  thread->wait(1);
+                  continue;
+                }
             }
+            else 
+              somethingToRead = true;
         }
         else if (pipe != nullptr)
         {
@@ -368,7 +404,7 @@ void InterprocessConnection::runThread()
             break;
         }
 
-        if (thread->threadShouldExit() || ! readNextMessage())
+        if (thread->threadShouldExit() || (somethingToRead && !readNextMessage()) || (somethingToWrite && !writeNextMessage()))
             break;
     }
 

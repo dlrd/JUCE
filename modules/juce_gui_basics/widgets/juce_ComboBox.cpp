@@ -56,6 +56,13 @@ void ComboBox::setEditableText (const bool isEditable)
     }
 }
 
+// SMODE
+void ComboBox::setFont (const Font& font)
+{
+  label->setFont(font);
+}
+// SMODE
+
 bool ComboBox::isTextEditable() const noexcept
 {
     return label->isEditable();
@@ -78,7 +85,7 @@ void ComboBox::setTooltip (const String& newTooltip)
 }
 
 //==============================================================================
-void ComboBox::addItem (const String& newItemText, int newItemId)
+void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMODE add annotation*/ const String& annotation /* = String() */)
 {
     // you can't add empty strings to the list..
     jassert (newItemText.isNotEmpty());
@@ -90,7 +97,7 @@ void ComboBox::addItem (const String& newItemText, int newItemId)
     jassert (getItemForId (newItemId) == nullptr);
 
     if (newItemText.isNotEmpty() && newItemId != 0)
-        currentMenu.addItem (newItemId, newItemText, true, false);
+        currentMenu.addItem (newItemId, newItemText, true, false, annotation /* // SMODE forward annotation */); 
 }
 
 void ComboBox::addItemList (const StringArray& itemsToAdd, int firstItemID)
@@ -198,6 +205,17 @@ String ComboBox::getItemText (const int index) const
 
     return {};
 }
+
+
+// SMODE 
+String ComboBox::getItemAnnotation(const int index) const
+{
+  if (const PopupMenu::Item* const item = getItemForIndex (index))
+    return item->shortcutKeyDescription;
+
+  return String();
+}
+// SMODE 
 
 int ComboBox::getItemId (const int index) const noexcept
 {
@@ -582,7 +600,7 @@ void ComboBox::mouseUp (const MouseEvent& e2)
 
 void ComboBox::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-    if (! menuActive && scrollWheelEnabled && e.eventComponent == this && wheel.deltaY != 0.0f)
+    if (! menuActive && scrollWheelEnabled && e.eventComponent == this && wheel.deltaY != 0.0f /** SMODE add CtrlDown and keyboard Focus check */&& e.mods.isCtrlDown() && hasKeyboardFocus(true))
     {
         mouseWheelAccumulator += wheel.deltaY * 5.0f;
 

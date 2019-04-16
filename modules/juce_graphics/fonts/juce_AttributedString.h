@@ -73,6 +73,8 @@ public:
     void append (const String& textToAppend, Colour colour);
     /** Appends some text, with a specified font and colour. */
     void append (const String& textToAppend, const Font& font, Colour colour);
+    /** SMODE Appends some text, with a specified font, colour and link. */
+    void append (const String& textToAppend, const Font& font, Colour colour, const String& link);
 
     /** Appends another AttributedString to this one.
         Note that this will only append the text, fonts, and colours - it won't copy any
@@ -160,7 +162,7 @@ public:
         Attribute& operator= (Attribute&&) noexcept;
 
         /** Creates an attribute that specifies the font and colour for a range of characters. */
-        Attribute (Range<int> range, const Font& font, Colour colour) noexcept;
+        Attribute (Range<int> range, const Font& font, Colour colour, const String& link /** SMODE */) noexcept;
 
         /** The range of characters to which this attribute will be applied. */
         Range<int> range;
@@ -170,6 +172,8 @@ public:
 
         /** The colour for this range of characters. */
         Colour colour { 0xff000000 };
+
+        String link; // SMODE
 
     private:
         JUCE_LEAK_DETECTOR (Attribute)

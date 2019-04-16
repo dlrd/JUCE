@@ -113,6 +113,7 @@ struct ItemComponent  : public Component
     void paint (Graphics& g) override
     {
         if (customComp == nullptr)
+        {
             getLookAndFeel().drawPopupMenuItem (g, getLocalBounds(),
                                                 item.isSeparator,
                                                 item.isEnabled,
@@ -123,6 +124,14 @@ struct ItemComponent  : public Component
                                                 item.shortcutKeyDescription,
                                                 item.image.get(),
                                                 getColour (item));
+        }
+        else
+        {
+          // SMODE hack: don't know why, but the parent component sometimes becomes null when we use kiwi::MenuCustomWidget
+          if (!customComp->getParentComponent())
+            addAndMakeVisible(customComp);
+          // --
+        }
     }
 
     void resized() override
@@ -459,6 +468,12 @@ struct MenuWindow  : public Component
             dismissMenu (nullptr);
         }
     }
+
+    // SMODE
+    // For commands with auxiliary menu
+    bool canModalEventBeSentToComponent (const Component* targetComponent) override
+      {return targetComponent && targetComponent->findParentComponentOfClass<PopupMenu::HelperClasses::MenuWindow>();}
+    // --
 
     void handleCommandMessage (int commandId) override
     {
@@ -1057,12 +1072,26 @@ private:
         auto localMousePos = window.getLocalPoint (nullptr, globalMousePos);
         auto timeNow = Time::getMillisecondCounter();
 
+        // SMODE
+        Component* c = window.getComponentAt (localMousePos);
+        if (c == &window)
+            c = nullptr;
+        ItemComponent* itemUnderMouse = dynamic_cast<ItemComponent*> (c);
+        if (itemUnderMouse == nullptr && c != nullptr)
+            itemUnderMouse = c->findParentComponentOfClass<ItemComponent>();
+        PopupMenu::CustomComponent* customComponent = itemUnderMouse ? itemUnderMouse->item.customComponent : nullptr;
+        if (customComponent && !customComponent->shouldShowSubMenu() && window.activeSubMenu)
+            window.activeSubMenu->hide (nullptr, true);
+        // --
+
         if (timeNow > window.timeEnteredCurrentChildComp + 100
              && window.reallyContains (localMousePos, true)
              && window.currentChild != nullptr
              && ! (window.disableMouseMoves || window.isSubMenuVisible()))
         {
-            window.showSubMenuFor (window.currentChild);
+            // SMODE
+            if (!customComponent || customComponent->shouldShowSubMenu())
+              window.showSubMenuFor (window.currentChild);
         }
 
         highlightItemUnderMouse (globalMousePos, localMousePos, timeNow);
@@ -1371,13 +1400,14 @@ void PopupMenu::addItem (const Item& newItem)
     items.add (new Item (newItem));
 }
 
-void PopupMenu::addItem (int itemResultID, const String& itemText, bool isActive, bool isTicked)
+void PopupMenu::addItem (int itemResultID, const String& itemText, bool isActive, bool isTicked, const String& annotation /** SMODE */)
 {
     Item i;
     i.text = itemText;
     i.itemID = itemResultID;
     i.isEnabled = isActive;
     i.isTicked = isTicked;
+    i.shortcutKeyDescription = annotation; /**SMODE add custom annotation who override shortcutKeyDescription */ 
     addItem (i);
 }
 
@@ -1458,11 +1488,12 @@ void PopupMenu::addColouredItem (int itemResultID, const String& itemText, Colou
     addItem (i);
 }
 
-void PopupMenu::addCustomItem (int itemResultID, CustomComponent* cc, const PopupMenu* subMenu)
+void PopupMenu::addCustomItem (int itemResultID, CustomComponent* cc, const PopupMenu* subMenu, bool isActive /* SMODE */)
 {
     Item i;
     i.itemID = itemResultID;
     i.customComponent = cc;
+    i.isEnabled = isActive; // SMODE
     i.subMenu.reset (createCopyIfNotNull (subMenu));
     addItem (i);
 }
@@ -1671,6 +1702,50 @@ int PopupMenu::showWithOptionalCallback (const Options& options, ModalComponentM
     return 0;
 }
 
+// SMODE
+Component* PopupMenu::getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback, const bool canBeModal)
+{
+  if (Component* window = createWindow(options, nullptr))
+  {
+    window->setVisible(true); // (must be called before enterModalState on Windows to avoid DropShadower confusion)
+    return window;
+  }
+  return nullptr;
+}
+
+// SMODE
+int PopupMenu::showWithOptionalCallbackAndGetComponent (const Options& options, ModalComponentManager::Callback* const userCallback,
+                                                           const bool canBeModal, Component** component)
+{
+    std::unique_ptr<ModalComponentManager::Callback> userCallbackDeleter (userCallback);
+    std::unique_ptr<PopupMenuCompletionCallback> callback (new PopupMenuCompletionCallback());
+
+    if (Component* window = createWindow (options, &(callback->managerOfChosenCommand)))
+    {
+        *component = window;
+        callback->component.reset(window);
+
+        window->setVisible (true); // (must be called before enterModalState on Windows to avoid DropShadower confusion)
+        window->enterModalState (false, userCallbackDeleter.release());
+        ModalComponentManager::getInstance()->attachCallback (window, callback.release());
+
+        window->toFront (false);  // need to do this after making it modal, or it could
+                                  // be stuck behind other comps that are already modal..
+
+       #if JUCE_MODAL_LOOPS_PERMITTED
+        if (userCallback == nullptr && canBeModal)
+            return window->runModalLoop();
+       #else
+        jassert (! (userCallback == nullptr && canBeModal));
+       #endif
+    }
+    else
+      *component = nullptr;
+
+    return 0;
+}
+// SMODE
+
 //==============================================================================
 #if JUCE_MODAL_LOOPS_PERMITTED
 int PopupMenu::showMenu (const Options& options)
@@ -1691,6 +1766,19 @@ void PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Ca
 void PopupMenu::showMenuAsync (const Options& options, std::function<void(int)> userCallback)
 {
     showWithOptionalCallback (options, ModalCallbackFunction::create (userCallback), false);
+}
+
+// SMODE
+Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, ModalComponentManager::Callback* userCallback)
+{
+   #if ! JUCE_MODAL_LOOPS_PERMITTED
+    jassert (userCallback != nullptr);
+   #endif
+
+    Component* res = nullptr;
+
+    showWithOptionalCallbackAndGetComponent (options, userCallback, false, &res);
+    return res;
 }
 
 //==============================================================================
