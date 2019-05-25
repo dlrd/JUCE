@@ -193,7 +193,9 @@ public:
                   const String& itemText,
                   bool isEnabled = true,
                   bool isTicked = false,
-                  const String& annotation = String()); /**SMODE add custom annotation who override shortcutKeyDescription */ 
+                  const String& annotation = String(), /**SMODE add custom annotation who override shortcutKeyDescription */
+                  const juce::Colour colour = juce::Colour(0x0));  /** SMODE add custom colour */
+
 
     /** Appends a new item with an icon.
 

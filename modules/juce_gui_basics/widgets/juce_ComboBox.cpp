@@ -85,7 +85,7 @@ void ComboBox::setTooltip (const String& newTooltip)
 }
 
 //==============================================================================
-void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMODE add annotation*/ const String& annotation /* = String() */)
+void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMODE add annotation*/ const String& annotation /* = String() */, /* SMODE add colour */Colour colour /* = Colour(0x0)*/ )
 {
     // you can't add empty strings to the list..
     jassert (newItemText.isNotEmpty());
@@ -97,7 +97,9 @@ void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMOD
     jassert (getItemForId (newItemId) == nullptr);
 
     if (newItemText.isNotEmpty() && newItemId != 0)
-        currentMenu.addItem (newItemId, newItemText, true, false, annotation /* // SMODE forward annotation */); 
+    {
+        currentMenu.addItem (newItemId, newItemText, true, false, annotation /* // SMODE forward annotation */, colour);
+    }
 }
 
 void ComboBox::addItemList (const StringArray& itemsToAdd, int firstItemID)

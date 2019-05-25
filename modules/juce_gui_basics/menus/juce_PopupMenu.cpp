@@ -1400,7 +1400,7 @@ void PopupMenu::addItem (const Item& newItem)
     items.add (new Item (newItem));
 }
 
-void PopupMenu::addItem (int itemResultID, const String& itemText, bool isActive, bool isTicked, const String& annotation /** SMODE */)
+void PopupMenu::addItem (int itemResultID, const String& itemText, bool isActive, bool isTicked, const String& annotation /** SMODE */, const juce::Colour colour  /** SMODE */)
 {
     Item i;
     i.text = itemText;
@@ -1408,6 +1408,7 @@ void PopupMenu::addItem (int itemResultID, const String& itemText, bool isActive
     i.isEnabled = isActive;
     i.isTicked = isTicked;
     i.shortcutKeyDescription = annotation; /**SMODE add custom annotation who override shortcutKeyDescription */ 
+    i.colour = colour; /**SMODE add custom colour */
     addItem (i);
 }
 
