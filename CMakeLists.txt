@@ -85,7 +85,10 @@ SET(JUCE_SOURCES
 
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
-TARGET_INCLUDE_DIRECTORIES(juce PRIVATE ${OPENGL_INCLUDE_DIR})
+target_include_directories(juce
+  PRIVATE ${OPENGL_INCLUDE_DIR}
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/modules"
+  )
 
 # Enable stack-unwinding support in c objects on gcc-based platforms.
 # Failing to do so will cause your program to be terminated when a png
@@ -99,7 +102,8 @@ IF (WIN32)
   IF (NOT SMODE_OPTION_STATIC_LIBS)
     ADD_DEFINITIONS(-DJUCE_DLL_BUILD=1)
   ENDIF (NOT SMODE_OPTION_STATIC_LIBS)
-  TARGET_LINK_LIBRARIES(juce kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet rpcrt4 ole32 advapi32 ws2_32 OpenGL32 Version Imm32 Shlwapi)
+  #TODO(Nicolas Despres): Switch to PRIVATE? 
+  target_link_libraries(juce PUBLIC kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet rpcrt4 ole32 advapi32 ws2_32 OpenGL32 Version Imm32 Shlwapi)
 ELSE (WIN32)
   IF   (UNIX)
     IF   (APPLE)
@@ -130,7 +134,7 @@ ENDIF(WIN32)
 
 OPTION(JUCE_ASIO_SUPPORT "Build Juce Asio support." ON)
 IF (JUCE_ASIO_SUPPORT)
-  TARGET_INCLUDE_DIRECTORIES(juce PRIVATE ${EXTERN_PATH}/include/asio)
+  target_include_directories(juce PRIVATE ${EXTERN_PATH}/include/asio)
   ADD_DEFINITIONS(-DJUCE_ASIO=1)
 ELSE (JUCE_ASIO_SUPPORT)
   ADD_DEFINITIONS(-DJUCE_ASIO=0)
@@ -142,9 +146,10 @@ SET_TARGET_PROPERTIES(juce PROPERTIES
 )
 
 if(APPLE)
-  TARGET_LINK_LIBRARIES(juce PRIVATE ${OPENGL_LIBRARIES})
+  target_link_libraries(juce PUBLIC ${OPENGL_LIBRARIES})
 else()
-  TARGET_LINK_LIBRARIES(juce ${OPENGL_LIBRARIES})
+  #TODO(Nicolas Despres): Switch to PRIVATE? 
+  target_link_libraries(juce PUBLIC ${OPENGL_LIBRARIES})
 endif()
 
 # The juce dll is part of SmodeCore because the LibraryGenerator uses it and is
