@@ -149,10 +149,7 @@ endif()
 
 # The juce dll is part of SmodeCore because the LibraryGenerator uses it and is
 # part of SmodeSDK.
-INSTALL(TARGETS juce
-  RUNTIME DESTINATION . COMPONENT SmodeCore
-  ARCHIVE DESTINATION lib COMPONENT SmodeSDK
-)
+smode_install_sdk_library(juce)
 
 SMODE_BINARY_PACKER(juce) 
 SMODE_BINARY_SIGN(juce)
