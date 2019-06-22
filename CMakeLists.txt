@@ -147,8 +147,7 @@ else()
   TARGET_LINK_LIBRARIES(juce ${OPENGL_LIBRARIES})
 endif()
 
-# The juce dll is part of SmodeCore because the LibraryGenerator uses it and is
-# part of SmodeSDK.
+# The juce dll is part of SmodeSDK because the LibraryGenerator uses it.
 smode_install_sdk_library(juce)
 
 SMODE_BINARY_PACKER(juce) 
