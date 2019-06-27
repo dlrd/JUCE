@@ -150,7 +150,7 @@ else()
 endif()
 
 # The juce dll is part of SmodeSDK because the LibraryGenerator uses it.
-smode_install_sdk_library(juce)
+smode_install_target(juce)
 
 SMODE_BINARY_PACKER(juce) 
 SMODE_BINARY_SIGN(juce)
