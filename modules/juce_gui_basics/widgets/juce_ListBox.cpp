@@ -202,7 +202,15 @@ public:
         const int newX = getViewedComponent()->getX();
         int newY = getViewedComponent()->getY();
         const int newW = jmax (owner.minimumRowWidth, getMaximumVisibleWidth());
-        const int newH = owner.totalItems * owner.getRowHeight();
+        int newH = owner.totalItems * owner.getRowHeight();
+
+        // Smode-Tech: add vertical space at the bottom (dlrd/Smode-Issues#3394)
+        const int maxVisibleHeight = getMaximumVisibleHeight();
+        const int verticalMargin = maxVisibleHeight / 3;
+        if (maxVisibleHeight && newH && newH > maxVisibleHeight - verticalMargin)
+          newH += verticalMargin;
+        // -- 
+
 
         if (newY + newH < getMaximumVisibleHeight() && newH > getMaximumVisibleHeight())
             newY = getMaximumVisibleHeight() - newH;
