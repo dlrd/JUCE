@@ -593,6 +593,9 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& address)
     return {};
 }
 
+IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+  {return {}; }
+
 #endif
 
 } // namespace juce

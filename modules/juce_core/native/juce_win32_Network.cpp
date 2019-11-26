@@ -579,6 +579,17 @@ namespace MACAddressHelpers
                 result.addIfNotAlreadyThere (createAddress ((sockaddr_in6*) addr->Address.lpSockaddr));
         }
     }
+
+    template <typename Type>
+    static IPAddress createAddressFromKnownFamily(Type addr)
+    {
+      if (addr->Address.lpSockaddr->sa_family == AF_INET)
+        return createAddress((sockaddr_in*)addr->Address.lpSockaddr);
+      else if (addr->Address.lpSockaddr->sa_family == AF_INET6)
+        return createAddress((sockaddr_in6*)addr->Address.lpSockaddr);
+      else
+        return {};
+    }
 }
 
 void MACAddress::findAllAddresses (Array<MACAddress>& result)
@@ -612,6 +623,9 @@ void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
 
 IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAddress)
 {
+    if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+      return broadcast(); // return broadcast for any interface 
+
     // TODO 
     // SMODE done for IPv4
 
@@ -628,7 +642,7 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
             ConvertLengthToIpv4MaskHelper convertLengthToIpv4MaskHelper;
 
             if (convertLengthToIpv4MaskHelper.callConvertLengthToIpv4Mask(addr->OnLinkPrefixLength))
-              return IPAddress(reinterpret_cast<const juce::uint8* >(&convertLengthToIpv4MaskHelper.mask), false);
+              return  IPAddress(reinterpret_cast<const juce::uint8*>(&convertLengthToIpv4MaskHelper.mask), false);
           }
         }
       }
@@ -636,6 +650,29 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
 
     return {};
 }
+
+// SMODE
+String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return "Any Interface";
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return "Local Host";
+
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return String(CharPointer_UTF16(adapter->FriendlyName));
+  }
+
+  return{};
+
+}
+// SMODE
 
 
 //==============================================================================

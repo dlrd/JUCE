@@ -130,4 +130,7 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
     return {};
 }
 
+IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+  {return {}; }
+
 } // namespace juce

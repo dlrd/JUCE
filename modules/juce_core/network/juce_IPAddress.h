@@ -137,6 +137,9 @@ public:
         If the address is not an interface, it will return a null address.
     */
     static IPAddress getInterfaceBroadcastAddress (const IPAddress& interfaceAddress);
+
+    // If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
+    static String getInterfaceFriendlyName(const IPAddress& interfaceAddress);
 };
 
 } // namespace juce
