@@ -625,9 +625,12 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
 {
     if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
       return broadcast(); // return broadcast for any interface 
+    if (interfaceAddress == local(false))
+      return local(false);
+    if (interfaceAddress == local(true))
+      return local(true);
 
-    // TODO 
-    // SMODE done for IPv4
+    // TODO IPv6
 
     GetAdaptersAddressesHelper addressesHelper;
 
@@ -642,7 +645,15 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
             ConvertLengthToIpv4MaskHelper convertLengthToIpv4MaskHelper;
 
             if (convertLengthToIpv4MaskHelper.callConvertLengthToIpv4Mask(addr->OnLinkPrefixLength))
-              return  IPAddress(reinterpret_cast<const juce::uint8*>(&convertLengthToIpv4MaskHelper.mask), false);
+            {
+              ULONG mask = ~convertLengthToIpv4MaskHelper.mask;
+              IPAddress maskIp = IPAddress(reinterpret_cast<const juce::uint8* >(&mask));
+
+              IPAddress res = interfaceAddress;
+              for (size_t i = 0; i < 4; ++i)
+                res.address[i] |= maskIp.address[i];
+              return res;
+            }
           }
         }
       }
