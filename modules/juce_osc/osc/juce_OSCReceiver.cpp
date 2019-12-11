@@ -90,12 +90,27 @@ namespace
             return input.readFloatBigEndian();
         }
 
+        // SMODE (dlrd/Smode-Issues#4442)
+        static String readStringWithCodePageDetection(InputStream& inputStream)
+        {
+          MemoryOutputStream buffer;
+
+          for (;;)
+          {
+            auto c = inputStream.readByte();
+            buffer.writeByte(c);
+
+            if (c == 0)
+              return buffer.toString(); // not toUTF8 as InputStream::readString()
+          }
+        }
+
         String readString()
         {
             checkBytesAvailable (4, "OSC input stream exhausted while reading string");
 
             auto posBegin = (size_t) getPosition();
-            auto s = input.readString();
+            auto s = readStringWithCodePageDetection(input); // SMODE (dlrd/Smode-Issues#4442)
             auto posEnd = (size_t) getPosition();
 
             if (static_cast<const char*> (getData()) [posEnd - 1] != '\0')
@@ -321,7 +336,7 @@ struct OSCReceiver::Pimpl   : private Thread,
     {
     }
 
-    ~Pimpl()
+    ~Pimpl() override
     {
         disconnect();
     }
@@ -529,33 +544,33 @@ private:
     //==============================================================================
     void callListeners (const OSCBundle::Element& content)
     {
-        using Listener = OSCReceiver::Listener<OSCReceiver::MessageLoopCallback>;
+        using OSCListener = OSCReceiver::Listener<OSCReceiver::MessageLoopCallback>;
 
         if (content.isMessage())
         {
             auto&& message = content.getMessage();
-            listeners.call ([&] (Listener& l) { l.oscMessageReceived (message); });
+            listeners.call ([&] (OSCListener& l) { l.oscMessageReceived (message); });
         }
         else if (content.isBundle())
         {
             auto&& bundle = content.getBundle();
-            listeners.call ([&] (Listener& l) { l.oscBundleReceived (bundle); });
+            listeners.call ([&] (OSCListener& l) { l.oscBundleReceived (bundle); });
         }
     }
 
     void callRealtimeListeners (const OSCBundle::Element& content)
     {
-        using Listener = OSCReceiver::Listener<OSCReceiver::RealtimeCallback>;
+        using OSCListener = OSCReceiver::Listener<OSCReceiver::RealtimeCallback>;
 
         if (content.isMessage())
         {
             auto&& message = content.getMessage();
-            realtimeListeners.call ([&] (Listener& l) { l.oscMessageReceived (message); });
+            realtimeListeners.call ([&] (OSCListener& l) { l.oscMessageReceived (message); });
         }
         else if (content.isBundle())
         {
             auto&& bundle = content.getBundle();
-            realtimeListeners.call ([&] (Listener& l) { l.oscBundleReceived (bundle); });
+            realtimeListeners.call ([&] (OSCListener& l) { l.oscBundleReceived (bundle); });
         }
     }
 
