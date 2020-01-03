@@ -437,11 +437,30 @@ Colour Colour::fromString (StringRef encodedColourString)
     return Colour ((uint32) CharacterFunctions::HexParser<int>::parse (encodedColourString.text));
 }
 
-String Colour::toDisplayString (const bool includeAlphaValue) const
+// SMODE
+static String convertColorComponentToHexString(uint8 c)
 {
-    return String::toHexString ((int) (argb.getInARGBMaskOrder() & (includeAlphaValue ? 0xffffffff : 0xffffff)))
-                  .paddedLeft ('0', includeAlphaValue ? 8 : 6)
-                  .toUpperCase();
+  String result = String::toHexString(c).toUpperCase();
+  if (result.length() == 1)
+    result = "0" + result;
+  return result;
 }
+// SMODE
+
+String Colour::toDisplayString(const bool includeAlphaValue) const
+{
+  // SMODE: let alpha component be displayed at the end
+  String res = convertColorComponentToHexString(argb.getRed()) +
+    convertColorComponentToHexString(argb.getGreen()) +
+    convertColorComponentToHexString(argb.getBlue());
+  if (includeAlphaValue)
+    res += convertColorComponentToHexString(argb.getAlpha());
+
+  return res;
+  //return String::toHexString ((int) (argb.getInARGBMaskOrder() & (includeAlphaValue ? 0xffffffff : 0xffffff)))
+  //              .paddedLeft ('0', includeAlphaValue ? 8 : 6)
+  //              .toUpperCase();
+}
+
 
 } // namespace juce
