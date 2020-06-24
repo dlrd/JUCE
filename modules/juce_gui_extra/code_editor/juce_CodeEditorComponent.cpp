@@ -465,7 +465,7 @@ void CodeEditorComponent::paint (Graphics& g)
     g.fillAll (findColour (CodeEditorComponent::backgroundColourId));
 
     auto gutterSize = getGutterSize();
-    g.reduceClipRegion (gutterSize, 0, verticalScrollBar.getX() - gutterSize, horizontalScrollBar.getY());
+    g.reduceClipRegion (gutterSize, 0, /** SMODE TECH */ jmax(0, verticalScrollBar.getX() - gutterSize), horizontalScrollBar.getY());
 
     g.setFont (font);
 
