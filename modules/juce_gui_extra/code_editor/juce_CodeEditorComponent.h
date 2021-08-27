@@ -168,7 +168,7 @@ public:
 
     //==============================================================================
     /** Can be used to save and restore the editor's caret position, selection state, etc. */
-    struct State
+    struct JUCE_API /** SMODE */State
     {
         /** Creates an object containing the state of the given editor. */
         State (const CodeEditorComponent&);
