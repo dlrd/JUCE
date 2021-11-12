@@ -524,6 +524,7 @@ public:
     // SMODE
     Component* showMenuAsyncAndGetComponent(const Options& options,
                         ModalComponentManager::Callback* callback);
+    static int menuAsyncCurrentIdUnderMouse(Component* component);
 
     //==============================================================================
     /** Closes any menus that are currently open.

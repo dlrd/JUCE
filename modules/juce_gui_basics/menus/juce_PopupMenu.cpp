@@ -1782,6 +1782,12 @@ Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, Moda
     return res;
 }
 
+int PopupMenu::menuAsyncCurrentIdUnderMouse(Component* component)
+{
+  auto current = static_cast<HelperClasses::MenuWindow*>(component)->currentChild.getComponent();
+  return current ? current->item.itemID : 0;
+}
+
 //==============================================================================
 #if JUCE_MODAL_LOOPS_PERMITTED
 int PopupMenu::show (int itemIDThatMustBeVisible, int minimumWidth,
