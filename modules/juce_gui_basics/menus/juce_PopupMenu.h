@@ -169,6 +169,10 @@ public:
 
         /** True if this menu item is a section header. */
         bool isSectionHeader = false;
+
+        // SmodeTech
+        bool isColumnSeparator = false;
+        // --
     };
 
     /** Adds an item to the menu.
@@ -359,6 +363,10 @@ public:
         always look ok.
     */
     void addSeparator();
+
+    // Smode Tech
+    void addColumnSeparator();
+    // --
 
     /** Adds a non-clickable text item to the menu.
         This is a bold-font items which can be used as a header to separate the items

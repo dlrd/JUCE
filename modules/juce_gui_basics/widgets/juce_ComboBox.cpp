@@ -113,6 +113,13 @@ void ComboBox::addSeparator()
     currentMenu.addSeparator();
 }
 
+// SmodeTech
+void ComboBox::addColumnSeparator()
+{
+  currentMenu.addColumnSeparator();
+}
+// ---
+
 void ComboBox::addSectionHeading (const String& headingName)
 {
     // you can't add empty strings to the list..

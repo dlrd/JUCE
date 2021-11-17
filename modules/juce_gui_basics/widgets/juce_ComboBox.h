@@ -113,6 +113,10 @@ public:
     */
     void addSeparator();
 
+    // SmodeTech
+    void addColumnSeparator();
+    // --
+
     /** Adds a heading to the drop-down list, so that you can group the items into
         different sections.
 
