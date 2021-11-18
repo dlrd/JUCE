@@ -1825,11 +1825,18 @@ Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, Moda
     return res;
 }
 
+// Smode Tech
 int PopupMenu::menuAsyncCurrentIdUnderMouse(Component* component)
 {
-  auto current = static_cast<HelperClasses::MenuWindow*>(component)->currentChild.getComponent();
+  auto window = static_cast<HelperClasses::MenuWindow*>(component);
+  if (!window || !window->currentChild)
+    return 0;
+  while (window->activeSubMenu && window->currentChild)
+    window = window->activeSubMenu.get();
+  auto current = window->currentChild.getComponent();
   return current ? current->item.itemID : 0;
 }
+// ---
 
 //==============================================================================
 #if JUCE_MODAL_LOOPS_PERMITTED
