@@ -1831,7 +1831,7 @@ int PopupMenu::menuAsyncCurrentIdUnderMouse(Component* component)
   auto window = static_cast<HelperClasses::MenuWindow*>(component);
   if (!window || !window->currentChild)
     return 0;
-  while (window->activeSubMenu && window->currentChild)
+  while (window->activeSubMenu && window->activeSubMenu->currentChild)
     window = window->activeSubMenu.get();
   auto current = window->currentChild.getComponent();
   return current ? current->item.itemID : 0;
