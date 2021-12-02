@@ -138,8 +138,11 @@ public:
     */
     static IPAddress getInterfaceBroadcastAddress (const IPAddress& interfaceAddress);
 
-    // If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
+    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
     static String getInterfaceFriendlyName(const IPAddress& interfaceAddress);
+
+    // SMODE return true if the IPAdress is optained via DHCP
+    static bool isDHCPInterface(const IPAddress& interfaceAddress);
 };
 
 } // namespace juce

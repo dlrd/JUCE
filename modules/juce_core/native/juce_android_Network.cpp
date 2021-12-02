@@ -593,8 +593,13 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& address)
     return {};
 }
 
+// SMODE
 IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
   {return {}; }
+
+bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
+  {return false;}
+// SMODE
 
 #endif
 
