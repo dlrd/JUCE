@@ -114,7 +114,7 @@ namespace
     }
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6, bool /* SMODE onlyOperational = false */)
 {
     for (auto& i : getAllInterfaceInfo())
         if (includeIPv6 || ! i.interfaceAddress.isIPv6)

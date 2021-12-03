@@ -578,7 +578,7 @@ static Array<InterfaceInfo> findIPAddresses()
     return result;
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool /*includeIPv6*/)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool /*includeIPv6*/, bool /* SMODE onlyOperational = false */)
 {
     for (auto& a : findIPAddresses())
         result.add (a.interfaceAddress);

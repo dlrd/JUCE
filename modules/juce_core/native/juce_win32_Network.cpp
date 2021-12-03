@@ -598,7 +598,7 @@ void MACAddress::findAllAddresses (Array<MACAddress>& result)
     MACAddressHelpers::getViaNetBios (result);
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6, bool onlyOperational /* SMODE = false */)
 {
     result.addIfNotAlreadyThere (IPAddress::local());
 
@@ -611,7 +611,7 @@ void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
     {
         for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
         {
-            if (adapter->OperStatus == IfOperStatusUp) /* SMODE filter only connected adapters */
+            if (!onlyOperational || adapter->OperStatus == IfOperStatusUp) /* SMODE filter only connected adapters */
               MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstUnicastAddress);
             /* SMODE do not populate anycast nor multicast addresses for now
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstAnycastAddress);

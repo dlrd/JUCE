@@ -44,7 +44,7 @@ public:
 
     //==============================================================================
     /** Populates a list of all the IP addresses that this machine is using. */
-    static void findAllAddresses (Array<IPAddress>& results, bool includeIPv6 = false);
+    static void findAllAddresses (Array<IPAddress>& results, bool includeIPv6 = false, /* SMODE */bool onlyOperational = false);
 
     /** Populates a list of all the IP addresses that this machine is using. */
     static Array<IPAddress> getAllAddresses (bool includeIPv6 = false);
