@@ -114,6 +114,10 @@ struct ItemComponent  : public Component
     {
         if (customComp == nullptr)
         {
+            // SmodeTech
+            if (item.isColumnSeparator)
+              return;
+            // --
             getLookAndFeel().drawPopupMenuItem (g, getLocalBounds(),
                                                 item.isSeparator,
                                                 item.isEnabled,
