@@ -196,11 +196,25 @@ namespace JPEGHelpers
 {
     using namespace jpeglibNamespace;
 
+    struct my_error_mgr  // SMODE
+    {
+        struct jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+    };
+    typedef struct my_error_mgr* my_error_ptr;
+
+
    #if ! (JUCE_WINDOWS && (JUCE_MSVC || JUCE_CLANG))
     using jpeglibNamespace::boolean;
    #endif
 
-    static void fatalErrorHandler (j_common_ptr p)          { *((bool*) (p->client_data)) = true; }
+    static void fatalErrorHandler (j_common_ptr p)          
+    { 
+      *((bool*) (p->client_data)) = true; 
+      // SMODE avoid jpeg error to do not return and crash 
+      my_error_ptr myerr = (my_error_ptr)p->err;
+      longjmp(myerr->setjmp_buffer, 1);
+    }
     static void silentErrorCallback1 (j_common_ptr)         {}
     static void silentErrorCallback2 (j_common_ptr, int)    {}
     static void silentErrorCallback3 (j_common_ptr, char*)  {}
@@ -324,9 +338,15 @@ Image JPEGImageFormat::decodeImage (InputStream& in)
     {
         struct jpeg_decompress_struct jpegDecompStruct;
 
-        struct jpeg_error_mgr jerr;
-        setupSilentErrorHandler (jerr);
-        jpegDecompStruct.err = &jerr;
+        struct my_error_mgr jerr; // SMODE
+        setupSilentErrorHandler (jerr.pub);
+        jpegDecompStruct.err = &jerr.pub;
+
+        if (setjmp(jerr.setjmp_buffer))  // SMODE
+        {
+            jpeg_destroy_decompress(&jpegDecompStruct);
+            return image;
+        }
 
         jpeg_create_decompress (&jpegDecompStruct);
 
@@ -426,9 +446,15 @@ bool JPEGImageFormat::writeImageToStream (const Image& image, OutputStream& out)
     zerostruct (jpegCompStruct);
     jpeg_create_compress (&jpegCompStruct);
 
-    struct jpeg_error_mgr jerr;
-    setupSilentErrorHandler (jerr);
-    jpegCompStruct.err = &jerr;
+    struct my_error_mgr jerr; // SMODE
+    setupSilentErrorHandler (jerr.pub);
+    jpegCompStruct.err = &jerr.pub;
+
+    if (setjmp(jerr.setjmp_buffer))  // SMODE
+    {
+      jpeg_destroy_compress(&jpegCompStruct);
+      return false;
+    }
 
     JuceJpegDest dest;
     jpegCompStruct.dest = &dest;
