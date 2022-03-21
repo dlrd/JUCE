@@ -144,6 +144,10 @@ endif()
 
 # The juce dll is part of SmodeSDK because the LibraryGenerator uses it.
 smode_install_target(juce)
+SET_TARGET_PROPERTIES(juce PROPERTIES 
+  DEBUG_POSTFIX "${SMODE_DEBUG_POSTFIX}" # for SmodeSDK
+  RELWITHDEBINFO_POSTFIX "${SMODE_RELEASE_POSTFIX}"
+)
 
 SMODE_BINARY_PACKER(juce) 
 SMODE_BINARY_SIGN(juce)
