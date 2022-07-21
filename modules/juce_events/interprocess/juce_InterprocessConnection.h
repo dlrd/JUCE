@@ -192,6 +192,10 @@ public:
     virtual bool hasMessagesToWrite() const { return false; }
     virtual bool sendMessagesToWrite() { return true; }
 
+    // SMODE: lazy magicMessageHeader support (set at first received packet if null)
+    uint32 getMagicMessageHeader() const
+      {return magicMessageHeader;}
+
 private:
     //==============================================================================
     ReadWriteLock pipeAndSocketLock;
@@ -199,7 +203,7 @@ private:
     std::unique_ptr<NamedPipe> pipe;
     bool callbackConnectionState = false;
     const bool useMessageThread;
-    const uint32 magicMessageHeader;
+    /* SMODE non const anymore du to lazy first received packet when null*/ uint32 magicMessageHeader;
     int pipeReceiveMessageTimeout = -1;
 
     friend class InterprocessConnectionServer;
