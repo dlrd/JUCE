@@ -131,7 +131,7 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
 }
 
 // SMODE
-IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
   {return {}; }
 
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
@@ -139,3 +139,4 @@ bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
 // SMODE
 
 } // namespace juce
+
