@@ -93,8 +93,8 @@ SET(JUCE_SOURCES
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
 if (JUCE_MODULE_OPENGL)
-  target_include_directories(juce PRIVATE ${OPENGL_INCLUDE_DIR})
-  target_link_libraries(juce PRIVATE ${OPENGL_LIBRARIES})
+  target_include_directories(juce PUBLIC ${OPENGL_INCLUDE_DIR}) # FIXME: let this PRIVATE
+  target_link_libraries(juce PUBLIC ${OPENGL_LIBRARIES}) # FIXME: let this PRIVATE
   target_compile_definitions(juce PUBLIC JUCE_MODULE_OPENGL=1)      
 endif ()
 
