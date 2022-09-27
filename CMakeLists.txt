@@ -4,7 +4,15 @@
 # Started  : 04/04/2014 11:21            |                                     #
 #/-------------------------------------- . -----------------------------------\#
 
-FIND_PACKAGE(OpenGL REQUIRED)
+OPTION(JUCE_MODULE_OPENGL "Build Juce OpenGL support." ON)
+if (JUCE_MODULE_OPENGL)
+  FIND_PACKAGE(OpenGL REQUIRED)
+  SET(JUCE_OPENGL_SOURCES
+    modules/juce_opengl/juce_opengl.cpp
+    modules/juce_opengl/juce_opengl.h
+  )
+endif ()
+
 
 SET(JUCE_AUDIO_BASICS_SOURCES
   modules/juce_audio_basics/juce_audio_basics.cpp
@@ -51,15 +59,14 @@ SET(JUCE_GUI_BASICS_SOURCES
   modules/juce_gui_basics/juce_gui_basics.h
 )
 
-SET(JUCE_GUI_EXTRA_SOURCES
-  modules/juce_gui_extra/juce_gui_extra.cpp
-  modules/juce_gui_extra/juce_gui_extra.h
-)
+OPTION(JUCE_MODULE_GUI_EXTRA "Build Juce GUI extra support." ON)
+if (JUCE_MODULE_GUI_EXTRA)
+  SET(JUCE_GUI_EXTRA_SOURCES
+    modules/juce_gui_extra/juce_gui_extra.cpp
+    modules/juce_gui_extra/juce_gui_extra.h
+  )
+endif ()
 
-SET(JUCE_OPENGL_SOURCES
-  modules/juce_opengl/juce_opengl.cpp
-  modules/juce_opengl/juce_opengl.h
-)
 
 SET(JUCE_OCS_SOURCES
   modules/juce_osc/juce_osc.cpp
@@ -85,24 +92,28 @@ SET(JUCE_SOURCES
 
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
-TARGET_INCLUDE_DIRECTORIES(juce PRIVATE ${OPENGL_INCLUDE_DIR})
+if (JUCE_MODULE_OPENGL)
+  target_include_directories(juce PRIVATE ${OPENGL_INCLUDE_DIR})
+  target_link_libraries(juce PRIVATE ${OPENGL_LIBRARIES})
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_OPENGL=1)      
+endif ()
+
+if (JUCE_MODULE_GUI_EXTRA)
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_GUI_EXTRA=1)      
+endif ()
 
 # Enable stack-unwinding support in c objects on gcc-based platforms.
 # Failing to do so will cause your program to be terminated when a png
 # or a jpeg exception is thrown on linux or macosx.
-IF (CMAKE_COMPILER_IS_GNUCC)
+if (CMAKE_COMPILER_IS_GNUCC)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fexceptions")
-ENDIF(CMAKE_COMPILER_IS_GNUCC)
+endif()
 
-# define plateform specific build environment
-IF (WIN32)
-  IF (NOT SMODE_OPTION_STATIC_LIBS)
-    ADD_DEFINITIONS(-DJUCE_DLL_BUILD=1)
-  ENDIF (NOT SMODE_OPTION_STATIC_LIBS)
-  TARGET_LINK_LIBRARIES(juce kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet rpcrt4 ole32 advapi32 ws2_32 OpenGL32 Version Imm32 Shlwapi)
-ELSE (WIN32)
-  IF   (UNIX)
-    IF   (APPLE)
+if (WIN32)
+  target_link_libraries(juce PRIVATE kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet rpcrt4 ole32 advapi32 ws2_32 Version Imm32 Shlwapi)
+else ()
+  if   (UNIX)
+    if   (APPLE)
       FIND_LIBRARY(CARBON_LIBRARY Carbon)
       FIND_LIBRARY(COCOA_LIBRARY Cocoa)
       FIND_LIBRARY(QUARTZ_LIBRARY Quartz)
@@ -114,40 +125,28 @@ ELSE (WIN32)
       FIND_LIBRARY(ACCELERATE_LIBRARY Accelerate)
       FIND_LIBRARY(WEB_KIT_LIBRARY WebKit)
       MARK_AS_ADVANCED (CARBON_LIBRARY COCOA_LIBRARY CORE_AUDIO_LIBRARY CORE_MIDI_LIBRARY IO_KIT_LIBRARY AGL_LIBRARY QUARTZ_LIBRARY QUARTZ_CORE_LIBRARY AUDIO_TOOLBOX_LIBRARY ACCELERATE_LIBRARY WEB_KIT_LIBRARY)
-      TARGET_LINK_LIBRARIES(juce PRIVATE ${CARBON_LIBRARY} ${COCOA_LIBRARY} ${CORE_AUDIO_LIBRARY} ${CORE_MIDI_LIBRARY} ${IO_KIT_LIBRARY} ${AGL_LIBRARY} ${QUARTZ_LIBRARY} ${QUARTZ_CORE_LIBRARY} ${AUDIO_TOOLBOX_LIBRARY} ${ACCELERATE_LIBRARY} ${WEB_KIT_LIBRARY} "-lobjc -lc++")
+      target_link_libraries(juce PRIVATE ${CARBON_LIBRARY} ${COCOA_LIBRARY} ${CORE_AUDIO_LIBRARY} ${CORE_MIDI_LIBRARY} ${IO_KIT_LIBRARY} ${AGL_LIBRARY} ${QUARTZ_LIBRARY} ${QUARTZ_CORE_LIBRARY} ${AUDIO_TOOLBOX_LIBRARY} ${ACCELERATE_LIBRARY} ${WEB_KIT_LIBRARY} "-lobjc -lc++")
       set_source_files_properties(${JUCE_SOURCES}
         PROPERTIES COMPILE_FLAGS "-x objective-c++")
-    ELSE (APPLE)
+    else ()
       FIND_PACKAGE(X11 REQUIRED)
-      TARGET_INCLUDE_DIRECTORIES(juce PRIVATE ${X11_INCLUDE_DIR})
-      TARGET_INCLUDE_DIRECTORIES(juce PRIVATE /usr/include/freetype2)
-      ADD_DEFINITIONS(-DLINUX)      
-      TARGET_LINK_LIBRARIES(juce ${X11_LIBRARIES} asound freetype Xinerama pthread rt dl curl)
-    ENDIF(APPLE)
-  ENDIF(UNIX)
-ENDIF(WIN32)
+      target_include_directories(juce PRIVATE ${X11_INCLUDE_DIR})
+      target_include_directories(juce PRIVATE /usr/include/freetype2)
+      target_compile_definitions(juce PRIVATE LINUX)      
+      target_link_libraries(juce ${X11_LIBRARIES} asound freetype Xinerama pthread rt dl curl)
+    endif()
+  endif()
+endif()
 
 
 OPTION(JUCE_ASIO_SUPPORT "Build Juce Asio support." ON)
-IF (JUCE_ASIO_SUPPORT)
-  TARGET_INCLUDE_DIRECTORIES(juce PRIVATE ${SMODE_EXTERN_PATH}/include/asio)
-  ADD_DEFINITIONS(-DJUCE_ASIO=1)
-ELSE (JUCE_ASIO_SUPPORT)
-  ADD_DEFINITIONS(-DJUCE_ASIO=0)
-ENDIF(JUCE_ASIO_SUPPORT)
-
-if(APPLE)
-  TARGET_LINK_LIBRARIES(juce PRIVATE ${OPENGL_LIBRARIES})
-else()
-  TARGET_LINK_LIBRARIES(juce ${OPENGL_LIBRARIES})
+if (JUCE_ASIO_SUPPORT)
+  target_include_directories(juce PRIVATE ${SMODE_EXTERN_PATH}/include/asio)
+  target_compile_definitions(juce PRIVATE JUCE_ASIO=1)
+else ()
+  target_compile_definitions(juce PRIVATE JUCE_ASIO=0)
 endif()
 
-# The juce dll is part of SmodeSDK because the LibraryGenerator uses it.
-smode_install_target(juce)
-SET_TARGET_PROPERTIES(juce PROPERTIES 
-  DEBUG_POSTFIX "${SMODE_DEBUG_POSTFIX}" # for SmodeSDK
-  RELWITHDEBINFO_POSTFIX "${SMODE_RELEASE_POSTFIX}"
-)
 
-SMODE_BINARY_PACK(juce) 
-SMODE_BINARY_SIGN(juce)
+
+smode_install_target(juce)
