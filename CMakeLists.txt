@@ -54,10 +54,13 @@ SET(JUCE_GRAPHICS_SOURCES
   modules/juce_graphics/juce_graphics.h
 )
 
-SET(JUCE_GUI_BASICS_SOURCES
-  modules/juce_gui_basics/juce_gui_basics.cpp
-  modules/juce_gui_basics/juce_gui_basics.h
-)
+OPTION(JUCE_MODULE_GUI_BASICS "Build Juce GUI basics support." ON)
+if (JUCE_MODULE_GUI_BASICS)
+  SET(JUCE_GUI_BASICS_SOURCES
+    modules/juce_gui_basics/juce_gui_basics.cpp
+    modules/juce_gui_basics/juce_gui_basics.h
+  )
+endif ()
 
 OPTION(JUCE_MODULE_GUI_EXTRA "Build Juce GUI extra support." ON)
 if (JUCE_MODULE_GUI_EXTRA)
@@ -98,6 +101,9 @@ if (JUCE_MODULE_OPENGL)
   target_compile_definitions(juce PUBLIC JUCE_MODULE_OPENGL=1)      
 endif ()
 
+if (JUCE_MODULE_GUI_BASICS)
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_GUI_BASICS=1)      
+endif ()
 if (JUCE_MODULE_GUI_EXTRA)
   target_compile_definitions(juce PUBLIC JUCE_MODULE_GUI_EXTRA=1)      
 endif ()
