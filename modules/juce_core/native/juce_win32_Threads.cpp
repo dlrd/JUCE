@@ -106,7 +106,9 @@ void Thread::killThread()
 
 void JUCE_CALLTYPE Thread::setCurrentThreadName (const String& name)
 {
-   #if JUCE_DEBUG && JUCE_MSVC
+   #if /**JUCE_DEBUG SMODE && */ JUCE_MSVC
+    if (!juce_isRunningUnderDebugger()) // SMODE
+      return;
     struct
     {
         DWORD dwType;
