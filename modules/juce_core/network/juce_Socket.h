@@ -83,6 +83,8 @@ public:
     */
     int getBoundPort() const noexcept;
 
+    String getBoundHost() const noexcept; // SMODE TECH
+
     /** Tries to connect the socket to hostname:port.
 
         If timeOutMillisecs is 0, then this method will block until the operating system
@@ -251,6 +253,8 @@ public:
         @returns  -1 if the socket didn't bind to any port yet or an error occurred
     */
     int getBoundPort() const noexcept;
+
+    String getBoundHost() const noexcept; // SMODE TECH
 
     /** Returns the OS's socket handle that's currently open. */
     int getRawSocketHandle() const noexcept                     { return handle; }
