@@ -158,7 +158,7 @@ endif()
 
 
 
-smode_install_target(juce)
+smode_install_target(juce EXPORT)
 
 SMODE_BINARY_PACK(juce)
 SMODE_BINARY_SIGN(juce)
