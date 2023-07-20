@@ -95,17 +95,17 @@ SET(JUCE_SOURCES
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
 if (JUCE_MODULE_DISABLE_OPENGL)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_OPENGL=1)    
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_OPENGL=1)
 else ()
-  target_include_directories(juce PUBLIC ${OPENGL_INCLUDE_DIR}) # FIXME: let this PRIVATE
-  target_link_libraries(juce PUBLIC ${OPENGL_LIBRARIES}) # FIXME: let this PRIVATE
+  target_include_directories(juce PRIVATE ${OPENGL_INCLUDE_DIR})
+  target_link_libraries(juce PRIVATE ${OPENGL_LIBRARIES})
 endif ()
 
 if (JUCE_MODULE_DISABLE_GUI_BASICS)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_BASICS=1)      
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_BASICS=1)
 endif ()
 if (JUCE_MODULE_DISABLE_GUI_EXTRA)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_EXTRA=1)      
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_EXTRA=1)
 endif ()
 
 # Enable stack-unwinding support in c objects on gcc-based platforms.
@@ -160,5 +160,5 @@ endif()
 
 smode_install_target(juce)
 
-SMODE_BINARY_PACK(juce) 
+SMODE_BINARY_PACK(juce)
 SMODE_BINARY_SIGN(juce)
