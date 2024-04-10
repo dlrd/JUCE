@@ -76,8 +76,6 @@ SET(JUCE_OCS_SOURCES
 )
 
 SET(JUCE_SOURCES
-  ${SMODE_EXTERN_PATH}/include/juce/AppConfig.h
-  ${SMODE_EXTERN_PATH}/include/juce/juce.h
   ${JUCE_AUDIO_BASICS_SOURCES}
   ${JUCE_AUDIO_DEVICES_SOURCES}
   ${JUCE_AUDIO_FORMATS_SOURCES}
@@ -147,18 +145,6 @@ else ()
   endif()
 endif()
 
-
-OPTION(JUCE_ASIO_SUPPORT "Build Juce Asio support." ON)
-if (JUCE_ASIO_SUPPORT)
-  target_include_directories(juce PRIVATE ${SMODE_EXTERN_PATH}/include/asio)
-  target_compile_definitions(juce PRIVATE JUCE_ASIO=1)
-else ()
-  target_compile_definitions(juce PRIVATE JUCE_ASIO=0)
-endif()
-
-
-
 smode_install_target(juce EXPORT)
 
-SMODE_BINARY_PACK(juce)
-SMODE_BINARY_SIGN(juce)
+smode_binary_sign(juce)
