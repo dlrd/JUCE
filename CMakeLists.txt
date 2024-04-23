@@ -146,5 +146,3 @@ else ()
 endif()
 
 smode_install_target(juce EXPORT)
-
-smode_binary_sign(juce)
