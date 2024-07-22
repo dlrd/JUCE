@@ -141,6 +141,9 @@ public:
     // SMODE If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
     static String getInterfaceFriendlyName(const IPAddress& interfaceAddress);
 
+    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated decription.
+    static String getInterfaceDescription(const IPAddress& interfaceAddress);
+
     // SMODE return true if the IPAdress is optained via DHCP
     static bool isDHCPInterface(const IPAddress& interfaceAddress);
 };

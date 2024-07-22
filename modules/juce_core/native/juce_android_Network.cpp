@@ -595,7 +595,10 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& address)
 
 // SMODE
 IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
-  {return {}; }
+  {return {};}
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+  {return {};}
 
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   {return false;}

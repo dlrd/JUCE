@@ -683,6 +683,28 @@ String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
   return{};
 }
 
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return "Any Interface";
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return "Local Host";
+
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return String(CharPointer_UTF16(adapter->Description));
+  }
+
+  return{};
+}
+
+
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
 {
   if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)

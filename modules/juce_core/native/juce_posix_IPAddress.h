@@ -132,7 +132,10 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
 
 // SMODE
 String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
-  {return {}; }
+  {return {};}
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+  {return {};}
 
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   {return false;}
