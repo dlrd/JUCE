@@ -531,7 +531,7 @@ public:
 
     // SMODE
     Component* showMenuAsyncAndGetComponent(const Options& options,
-                        ModalComponentManager::Callback* callback);
+                        ModalComponentManager::Callback* callback) const;
     static int menuAsyncCurrentIdUnderMouse(Component* component);
 
     //==============================================================================
@@ -769,7 +769,7 @@ public:
     };
 
     // SMODE
-    int showWithOptionalCallbackAndGetComponent (const Options&, ModalComponentManager::Callback*, bool, Component**);
+    int showWithOptionalCallbackAndGetComponent (const Options&, ModalComponentManager::Callback*, bool, Component**) const;
     Component* getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback,
       const bool canBeModal);
 

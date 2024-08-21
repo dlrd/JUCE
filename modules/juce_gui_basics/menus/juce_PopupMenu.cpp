@@ -1763,7 +1763,7 @@ Component* PopupMenu::getProcessedComponent(const Options& options, ModalCompone
 
 // SMODE
 int PopupMenu::showWithOptionalCallbackAndGetComponent (const Options& options, ModalComponentManager::Callback* const userCallback,
-                                                           const bool canBeModal, Component** component)
+                                                           const bool canBeModal, Component** component) const
 {
     std::unique_ptr<ModalComponentManager::Callback> userCallbackDeleter (userCallback);
     std::unique_ptr<PopupMenuCompletionCallback> callback (new PopupMenuCompletionCallback());
@@ -1817,7 +1817,7 @@ void PopupMenu::showMenuAsync (const Options& options, std::function<void(int)> 
 }
 
 // SMODE
-Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, ModalComponentManager::Callback* userCallback)
+Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, ModalComponentManager::Callback* userCallback) const
 {
    #if ! JUCE_MODAL_LOOPS_PERMITTED
     jassert (userCallback != nullptr);
