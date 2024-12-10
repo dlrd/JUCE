@@ -405,10 +405,32 @@ public:
         if (bufSize > 0)
         {
             HeapBlock<char> data (bufSize);
-            GetGlyphOutline (dc, (UINT) glyphNumber, GGO_NATIVE | GGO_GLYPH_INDEX, &gm,
+            SetLastError(0);
+            DWORD errorCode = GetGlyphOutline (dc, (UINT) glyphNumber, GGO_NATIVE | GGO_GLYPH_INDEX, &gm,
                              bufSize, data, &identityMatrix);
 
+            // SMODE check next call to avoid potentially already fixed threading crash.
+            if (errorCode == GDI_ERROR)
+            {
+              DWORD lasterror = GetLastError(); // sometime ERROR_INVALID_HANDLE
+              std::unique_ptr<FileOutputStream> debugJuce(File("c:\\temp\\debugjuce.txt").createOutputStream());
+              if (debugJuce)
+                *debugJuce << String("GetGlyphOutline failure with GetLastError: ") << String((int)lasterror) << "\r\n";
+              return false; // will display no text
+            }
+            // end SMODE
+
             auto pheader = reinterpret_cast<const TTPOLYGONHEADER*> (data.getData());
+
+            // SMODE check untested case just to be sure
+            if (pheader->dwType != TT_POLYGON_TYPE)
+            {
+              std::unique_ptr<FileOutputStream> debugJuce(File("c:\\temp\\debugjuce.txt").createOutputStream());
+              if (debugJuce)
+                *debugJuce << "TTPOLYGONHEADER::dwType != TT_POLYGON_TYPE dwType=" << String((int)pheader->dwType) << "\r\n";
+              return false; // will display no text
+            }
+            // end SMODE
 
             auto scaleX = 1.0f / tm.tmHeight;
             auto scaleY = -scaleX;

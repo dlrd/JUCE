@@ -27,6 +27,115 @@
 namespace juce
 {
 
+// SMODE: hey Julian you are polluting global interface with internal macro
+// fixing by using MSVC/GCC extension, todo support with other compiler
+#ifndef JUCE_MAC
+#pragma push_macro("glActiveTexture")
+#undef glActiveTexture
+#pragma push_macro("glBindBuffer")
+#undef glBindBuffer
+#pragma push_macro("glDeleteBuffers")
+#undef glDeleteBuffers
+#pragma push_macro("glGenBuffers")
+#undef glGenBuffers
+#pragma push_macro("glBufferData")
+#undef glBufferData
+#pragma push_macro("glBufferSubData")
+#undef glBufferSubData
+#pragma push_macro("glIsRenderbuffer")
+#undef glIsRenderbuffer
+#pragma push_macro("glBindRenderbuffer")
+#undef glBindRenderbuffer
+#pragma push_macro("glDeleteRenderbuffers")
+#undef glDeleteRenderbuffers
+#pragma push_macro("glGenRenderbuffers")
+#undef glGenRenderbuffers
+#pragma push_macro("glRenderbufferStorage")
+#undef glRenderbufferStorage
+#pragma push_macro("glGetRenderbufferParameteriv")
+#undef glGetRenderbufferParameteriv
+#pragma push_macro("glIsFramebuffer")
+#undef glIsFramebuffer
+#pragma push_macro("glBindFramebuffer")
+#undef glBindFramebuffer
+#pragma push_macro("glDeleteFramebuffers")
+#undef glDeleteFramebuffers
+#pragma push_macro("glGenFramebuffers")
+#undef glGenFramebuffers
+#pragma push_macro("glCheckFramebufferStatus")
+#undef glCheckFramebufferStatus
+#pragma push_macro("glFramebufferTexture2D")
+#undef glFramebufferTexture2D
+#pragma push_macro("glFramebufferRenderbuffer")
+#undef glFramebufferRenderbuffer
+#pragma push_macro("glGetFramebufferAttachmentParameteriv")
+#undef glGetFramebufferAttachmentParameteriv
+#pragma push_macro("glCreateProgram")
+#undef glCreateProgram
+#pragma push_macro("glDeleteProgram")
+#undef glDeleteProgram
+#pragma push_macro("glCreateShader")
+#undef glCreateShader
+#pragma push_macro("glDeleteShader")
+#undef glDeleteShader
+#pragma push_macro("glShaderSource")
+#undef glShaderSource
+#pragma push_macro("glCompileShader")
+#undef glCompileShader
+#pragma push_macro("glAttachShader")
+#undef glAttachShader
+#pragma push_macro("glLinkProgram")
+#undef glLinkProgram
+#pragma push_macro("glUseProgram")
+#undef glUseProgram
+#pragma push_macro("glGetShaderiv")
+#undef glGetShaderiv
+#pragma push_macro("glGetShaderInfoLog")
+#undef glGetShaderInfoLog
+#pragma push_macro("glGetProgramInfoLog")
+#undef glGetProgramInfoLog
+#pragma push_macro("glGetProgramiv")
+#undef glGetProgramiv
+#pragma push_macro("glGetUniformLocation")
+#undef glGetUniformLocation
+#pragma push_macro("glGetAttribLocation")
+#undef glGetAttribLocation
+#pragma push_macro("glVertexAttribPointer")
+#undef glVertexAttribPointer
+#pragma push_macro("glEnableVertexAttribArray")
+#undef glEnableVertexAttribArray
+#pragma push_macro("glDisableVertexAttribArray")
+#undef glDisableVertexAttribArray
+#pragma push_macro("glGenVertexArrays")
+#undef glGenVertexArrays
+#pragma push_macro("glDeleteVertexArrays")
+#undef glDeleteVertexArrays
+#pragma push_macro("glBindVertexArray")
+#undef glBindVertexArray
+#pragma push_macro("glUniform1f")
+#undef glUniform1f
+#pragma push_macro("glUniform1i")
+#undef glUniform1i
+#pragma push_macro("glUniform2f")
+#undef glUniform2f
+#pragma push_macro("glUniform3f")
+#undef glUniform3f
+#pragma push_macro("glUniform4f")
+#undef glUniform4f
+#pragma push_macro("glUniform4i")
+#undef glUniform4i
+#pragma push_macro("glUniform1fv")
+#undef glUniform1fv
+#pragma push_macro("glUniformMatrix2fv")
+#undef glUniformMatrix2fv
+#pragma push_macro("glUniformMatrix3fv")
+#undef glUniformMatrix3fv
+#pragma push_macro("glUniformMatrix4fv")
+#undef glUniformMatrix4fv
+#pragma push_macro("glBindAttribLocation")
+#undef glBindAttribLocation
+#endif // !JUCE_MAC
+
 /** @internal This macro contains a list of GL extension functions that need to be dynamically loaded on Windows/Linux.
     @see OpenGLExtensionFunctions
 */
@@ -157,5 +266,63 @@ struct OpenGLExtensionFunctions
 
     #undef JUCE_DECLARE_GL_FUNCTION
 };
+
+// SMODE: hey Julian you are polluting global interface with internal macro
+// fixing by using MSVC/GCC extension, todo support with other compiler
+#ifndef JUCE_MAC
+#pragma pop_macro("glActiveTexture")
+#pragma pop_macro("glBindBuffer")
+#pragma pop_macro("glDeleteBuffers")
+#pragma pop_macro("glGenBuffers")
+#pragma pop_macro("glBufferData")
+#pragma pop_macro("glBufferSubData")
+#pragma pop_macro("glIsRenderbuffer")
+#pragma pop_macro("glBindRenderbuffer")
+#pragma pop_macro("glDeleteRenderbuffers")
+#pragma pop_macro("glGenRenderbuffers")
+#pragma pop_macro("glRenderbufferStorage")
+#pragma pop_macro("glGetRenderbufferParameteriv")
+#pragma pop_macro("glIsFramebuffer")
+#pragma pop_macro("glBindFramebuffer")
+#pragma pop_macro("glDeleteFramebuffers")
+#pragma pop_macro("glGenFramebuffers")
+#pragma pop_macro("glCheckFramebufferStatus")
+#pragma pop_macro("glFramebufferTexture2D")
+#pragma pop_macro("glFramebufferRenderbuffer")
+#pragma pop_macro("glGetFramebufferAttachmentParameteriv")
+#pragma pop_macro("glCreateProgram")
+#pragma pop_macro("glDeleteProgram")
+#pragma pop_macro("glCreateShader")
+#pragma pop_macro("glDeleteShader")
+#pragma pop_macro("glShaderSource")
+#pragma pop_macro("glCompileShader")
+#pragma pop_macro("glAttachShader")
+#pragma pop_macro("glLinkProgram")
+#pragma pop_macro("glUseProgram")
+#pragma pop_macro("glGetShaderiv")
+#pragma pop_macro("glGetShaderInfoLog")
+#pragma pop_macro("glGetProgramInfoLog")
+#pragma pop_macro("glGetProgramiv")
+#pragma pop_macro("glGetUniformLocation")
+#pragma pop_macro("glGetAttribLocation")
+#pragma pop_macro("glVertexAttribPointer")
+#pragma pop_macro("glEnableVertexAttribArray")
+#pragma pop_macro("glDisableVertexAttribArray")
+#pragma pop_macro("glGenVertexArrays")
+#pragma pop_macro("glDeleteVertexArrays")
+#pragma pop_macro("glBindVertexArray")
+#pragma pop_macro("glUniform1f")
+#pragma pop_macro("glUniform1i")
+#pragma pop_macro("glUniform2f")
+#pragma pop_macro("glUniform3f")
+#pragma pop_macro("glUniform4f")
+#pragma pop_macro("glUniform4i")
+#pragma pop_macro("glUniform1fv")
+#pragma pop_macro("glUniformMatrix2fv")
+#pragma pop_macro("glUniformMatrix3fv")
+#pragma pop_macro("glUniformMatrix4fv")
+#pragma pop_macro("glBindAttribLocation")
+
+#endif // !JUCE_MAC
 
 } // namespace juce

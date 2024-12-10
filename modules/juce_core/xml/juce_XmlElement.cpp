@@ -229,10 +229,17 @@ namespace XmlOutputFunctions
             {
                 switch (character)
                 {
-                    case '&':   outputStream << "&amp;"; break;
-                    case '"':   outputStream << "&quot;"; break;
-                    case '>':   outputStream << "&gt;"; break;
-                    case '<':   outputStream << "&lt;"; break;
+/*                case '&':   outputStream << "&amp;"; break;
+                case '"':   outputStream << "&quot;"; break;
+                case '>':   outputStream << "&gt;"; break;
+                case '<':   outputStream << "&lt;"; break;*/
+
+                // SMODE (dlrd/Smode-Issues#3807)
+                case '&': case '"': case '>': case '<': case 9:
+                  outputStream.writeByte((char)character);
+                  break;
+                // --------
+
 
                     case '\n':
                     case '\r':
@@ -258,11 +265,12 @@ namespace XmlOutputFunctions
 
 void XmlElement::writeElementAsText (OutputStream& outputStream,
                                      const int indentationLevel,
-                                     const int lineWrapLength) const
+                                     const int lineWrapLength,
+                                      bool ignoreIdentationOnFirstLine /* SMODE*/) const
 {
     using namespace XmlOutputFunctions;
 
-    if (indentationLevel >= 0)
+    if (indentationLevel >= 0 && !ignoreIdentationOnFirstLine) // ignoreIdentationOnFirstLine has been added by SMODE (dlrd/Smode-Issues#3807)
         writeSpaces (outputStream, (size_t) indentationLevel);
 
     if (! isTextElement())
@@ -311,7 +319,7 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
                         outputStream << newLine;
 
                     child->writeElementAsText (outputStream,
-                                               lastWasTextNode ? 0 : (indentationLevel + (indentationLevel >= 0 ? 2 : 0)), lineWrapLength);
+                                               indentationLevel + (indentationLevel >= 0 ? 2 : 0), lineWrapLength, lastWasTextNode); // SMODE (dlrd/Smode-Issues#3807)
                     lastWasTextNode = false;
                 }
             }
@@ -375,7 +383,7 @@ void XmlElement::writeToStream (OutputStream& output, StringRef dtdToUse,
             output << newLine;
     }
 
-    writeElementAsText (output, allOnOneLine ? -1 : 0, lineWrapLength);
+    writeElementAsText (output, allOnOneLine ? -1 : 0, lineWrapLength, false /* SMODE */);
 
     if (! allOnOneLine)
         output << newLine;
@@ -926,15 +934,12 @@ void XmlElement::deleteAllTextElements() noexcept
 }
 
 //==============================================================================
-//==============================================================================
 #if JUCE_UNIT_TESTS
 
 class XmlElementTests  : public UnitTest
 {
 public:
-    XmlElementTests()
-        : UnitTest ("XmlElement", UnitTestCategories::xml)
-    {}
+    XmlElementTests() : UnitTest ("XmlElement", "XML") {}
 
     void runTest() override
     {

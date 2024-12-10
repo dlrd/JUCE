@@ -193,7 +193,7 @@ private:
 
     int indexToColumn (int index, const String& line, int tabSpaces) const noexcept
     {
-        jassert (index <= line.length());
+        // SMODE: comment this: jassert (index <= line.length());
 
         auto t = line.getCharPointer();
         int col = 0;
@@ -465,7 +465,7 @@ void CodeEditorComponent::paint (Graphics& g)
     g.fillAll (findColour (CodeEditorComponent::backgroundColourId));
 
     auto gutterSize = getGutterSize();
-    g.reduceClipRegion (gutterSize, 0, verticalScrollBar.getX() - gutterSize, horizontalScrollBar.getY());
+    g.reduceClipRegion (gutterSize, 0, /** SMODE TECH */ jmax(0, verticalScrollBar.getX() - gutterSize), horizontalScrollBar.getY());
 
     g.setFont (font);
 
@@ -1458,7 +1458,7 @@ int CodeEditorComponent::indexToColumn (int lineNum, int index) const noexcept
     {
         if (t.isEmpty())
         {
-            jassertfalse;
+            // SMODE: comment assertions: jassertfalse;
             break;
         }
 

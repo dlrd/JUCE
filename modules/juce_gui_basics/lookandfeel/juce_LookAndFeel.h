@@ -188,6 +188,23 @@ public:
     */
     void setDefaultSansSerifTypefaceName (const String& newName);
 
+
+    /** Allows you to supply a default typeface that will be returned as the default
+        fixed font.
+        Instead of a typeface object, you can specify a typeface by name using the
+        setDefaultFixedTypefaceName() method.
+        You can perform more complex typeface substitutions by overloading
+        getTypefaceForFont() but this lets you easily set a global typeface.
+    */
+    void setDefaultFixedTypeface(Typeface::Ptr newDefaultTypeface); // SMODE
+
+    /** Allows you to change the default fixed font.
+        If you need to supply your own Typeface object for any of the default fonts, rather
+        than just supplying the name (e.g. if you want to use an embedded font), then
+        you can instead call setDefaultFixedTypeface() with an object to use.
+    */
+    void setDefaultFixedTypefaceName(const String& newName); // SMODE
+
     //==============================================================================
     /** Override this to get the chance to swap a component's mouse cursor for a
         customised one.
@@ -196,9 +213,9 @@ public:
 
     //==============================================================================
     /** Creates a new graphics context object. */
-    virtual LowLevelGraphicsContext* createGraphicsContext (const Image& imageToRenderOn,
-                                                            const Point<int>& origin,
-                                                            const RectangleList<int>& initialClip);
+    virtual std::unique_ptr<LowLevelGraphicsContext> createGraphicsContext (const Image& imageToRenderOn,
+                                                                            Point<int> origin,
+                                                                            const RectangleList<int>& initialClip);
 
     void setUsingNativeAlertWindows (bool shouldUseNativeAlerts);
     bool isUsingNativeAlertWindows();
@@ -237,7 +254,7 @@ private:
 
     SortedSet<ColourSetting> colours;
     String defaultSans, defaultSerif, defaultFixed;
-    Typeface::Ptr defaultTypeface;
+    Typeface::Ptr defaultTypeface, /* SMODE */defaultTypefaceFixed;
     bool useNativeAlertWindows = false;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE (LookAndFeel)

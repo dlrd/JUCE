@@ -449,6 +449,25 @@ struct GetAdaptersAddressesHelper
     HeapBlock<IP_ADAPTER_ADDRESSES> adaptersAddresses;
 };
 
+// SMODE
+struct ConvertLengthToIpv4MaskHelper
+{
+  bool callConvertLengthToIpv4Mask(ULONG maskLength)
+  {
+    DynamicLibrary dll("iphlpapi.dll");
+    JUCE_LOAD_WINAPI_FUNCTION(dll, ConvertLengthToIpv4Mask, convertLengthToIpv4Mask, NETIO_STATUS, (ULONG, PULONG))
+
+      if (convertLengthToIpv4Mask == nullptr)
+        return false;
+
+    return convertLengthToIpv4Mask(maskLength, &mask) == NO_ERROR;
+  }
+
+  ULONG mask;
+};
+// SMODE
+
+
 namespace MACAddressHelpers
 {
     static void addAddress (Array<MACAddress>& result, const MACAddress& ma)
@@ -560,6 +579,17 @@ namespace MACAddressHelpers
                 result.addIfNotAlreadyThere (createAddress ((sockaddr_in6*) addr->Address.lpSockaddr));
         }
     }
+
+    template <typename Type>
+    static IPAddress createAddressFromKnownFamily(Type addr)
+    {
+      if (addr->Address.lpSockaddr->sa_family == AF_INET)
+        return createAddress((sockaddr_in*)addr->Address.lpSockaddr);
+      else if (addr->Address.lpSockaddr->sa_family == AF_INET6)
+        return createAddress((sockaddr_in6*)addr->Address.lpSockaddr);
+      else
+        return {};
+    }
 }
 
 void MACAddress::findAllAddresses (Array<MACAddress>& result)
@@ -568,7 +598,7 @@ void MACAddress::findAllAddresses (Array<MACAddress>& result)
     MACAddressHelpers::getViaNetBios (result);
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6, bool onlyOperational /* SMODE = false */)
 {
     result.addIfNotAlreadyThere (IPAddress::local());
 
@@ -581,18 +611,121 @@ void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
     {
         for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
         {
-            MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstUnicastAddress);
+            if (!onlyOperational || adapter->OperStatus == IfOperStatusUp) /* SMODE filter only connected adapters */
+              MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstUnicastAddress);
+            /* SMODE do not populate anycast nor multicast addresses for now
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstAnycastAddress);
             MACAddressHelpers::findAddresses (result, includeIPv6, adapter->FirstMulticastAddress);
+            */
         }
     }
 }
 
-IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress&)
+IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAddress)
 {
-    // TODO
+    if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+      return broadcast(); // return broadcast for any interface 
+    if (interfaceAddress == local(false))
+      return local(false);
+    if (interfaceAddress == local(true))
+      return local(true);
+
+    // TODO IPv6
+
+    GetAdaptersAddressesHelper addressesHelper;
+
+    if (addressesHelper.callGetAdaptersAddresses())
+    {
+      for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      {
+        for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        {
+          if (addr->Address.lpSockaddr->sa_family == AF_INET && MACAddressHelpers::createAddress((sockaddr_in*)addr->Address.lpSockaddr) == interfaceAddress)
+          {
+            ConvertLengthToIpv4MaskHelper convertLengthToIpv4MaskHelper;
+
+            if (convertLengthToIpv4MaskHelper.callConvertLengthToIpv4Mask(addr->OnLinkPrefixLength))
+            {
+              ULONG mask = ~convertLengthToIpv4MaskHelper.mask;
+              IPAddress maskIp = IPAddress(reinterpret_cast<const juce::uint8* >(&mask));
+
+              IPAddress res = interfaceAddress;
+              for (size_t i = 0; i < 4; ++i)
+                res.address[i] |= maskIp.address[i];
+              return res;
+            }
+          }
+        }
+      }
+    }
+
     return {};
 }
+
+// SMODE
+String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return "Any Interface";
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return "Local Host";
+
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return String(CharPointer_UTF16(adapter->FriendlyName));
+  }
+
+  return{};
+}
+
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return "Any Interface";
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return "Local Host";
+
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return String(CharPointer_UTF16(adapter->Description));
+  }
+
+  return{};
+}
+
+
+bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return false;
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return false;
+
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return adapter->Dhcpv4Enabled != 0;
+  }
+
+  return false;
+}
+
+// SMODE
 
 
 //==============================================================================

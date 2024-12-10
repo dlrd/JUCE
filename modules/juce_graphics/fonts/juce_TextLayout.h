@@ -126,6 +126,7 @@ public:
 
         Font font;              /**< The run's font. */
         Colour colour;          /**< The run's colour. */
+        String link;            /**< The run's link, added by SMODE. */
         Array<Glyph> glyphs;    /**< The glyphs in this run. */
         Range<int> stringRange; /**< The character range that this run represents in the
                                      original string that was used to create it. */
@@ -171,6 +172,9 @@ public:
 
     /** Returns the maximum height of the content. */
     float getHeight() const noexcept    { return height; }
+
+    /** SMODE Returns the justification of the content. */
+    Justification getJustification() const noexcept { return justification; }
 
     /** Returns the number of lines in the layout. */
     int getNumLines() const noexcept    { return lines.size(); }

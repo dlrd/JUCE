@@ -216,7 +216,7 @@ bool OpenGLFrameBuffer::initialise (OpenGLFrameBuffer& other)
     {
         pimpl->bind();
 
-       #if ! JUCE_ANDROID
+       #if ! JUCE_ANDROID /** SMODE */&& ! JUCE_OPENGL3
         glEnable (GL_TEXTURE_2D);
         clearGLError();
        #endif

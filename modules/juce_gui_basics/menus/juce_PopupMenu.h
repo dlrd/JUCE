@@ -169,6 +169,10 @@ public:
 
         /** True if this menu item is a section header. */
         bool isSectionHeader = false;
+
+        // SmodeTech
+        bool isColumnSeparator = false;
+        // --
     };
 
     /** Adds an item to the menu.
@@ -192,7 +196,10 @@ public:
     void addItem (int itemResultID,
                   const String& itemText,
                   bool isEnabled = true,
-                  bool isTicked = false);
+                  bool isTicked = false,
+                  const String& annotation = String(), /**SMODE add custom annotation who override shortcutKeyDescription */
+                  const juce::Colour colour = juce::Colour(0x0));  /** SMODE add custom colour */
+
 
     /** Appends a new item with an icon.
 
@@ -286,7 +293,8 @@ public:
     */
     void addCustomItem (int itemResultID,
                         CustomComponent* customComponent,
-                        const PopupMenu* optionalSubMenu = nullptr);
+                        const PopupMenu* optionalSubMenu = nullptr, 
+                        bool isEnabled = true); // SMODE: added isEnabled
 
     /** Appends a custom menu item that can't be used to trigger a result.
 
@@ -355,6 +363,10 @@ public:
         always look ok.
     */
     void addSeparator();
+
+    // Smode Tech
+    void addColumnSeparator();
+    // --
 
     /** Adds a non-clickable text item to the menu.
         This is a bold-font items which can be used as a header to separate the items
@@ -517,6 +529,11 @@ public:
     void showMenuAsync (const Options& options,
                         std::function<void(int)> callback);
 
+    // SMODE
+    Component* showMenuAsyncAndGetComponent(const Options& options,
+                        ModalComponentManager::Callback* callback) const;
+    static int menuAsyncCurrentIdUnderMouse(Component* component);
+
     //==============================================================================
     /** Closes any menus that are currently open.
 
@@ -625,6 +642,11 @@ public:
 
         /** Destructor. */
         ~CustomComponent() override;
+
+        // SMODE
+        virtual bool shouldShowSubMenu() const
+          {return true;}
+        //
 
         /** Returns a rectangle with the size that this component would like to have.
 
@@ -745,6 +767,11 @@ public:
 
         virtual int getPopupMenuBorderSize() = 0;
     };
+
+    // SMODE
+    int showWithOptionalCallbackAndGetComponent (const Options&, ModalComponentManager::Callback*, bool, Component**) const;
+    Component* getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback,
+      const bool canBeModal);
 
 private:
     //==============================================================================

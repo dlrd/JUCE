@@ -352,7 +352,7 @@ public:
 
     void drawComponentBuffer()
     {
-       #if ! JUCE_ANDROID
+       #if ! JUCE_ANDROID /** SMODE */&& ! JUCE_OPENGL3
         glEnable (GL_TEXTURE_2D);
         clearGLError();
        #endif
@@ -416,7 +416,7 @@ public:
     {
         updateViewportSize (true);
 
-       #if JUCE_MAC
+       #if 0 // SMODE (was #if JUCE_MAC)
         if (hasInitialised)
         {
             [nativeContext->view update];

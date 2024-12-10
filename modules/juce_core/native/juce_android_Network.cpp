@@ -578,7 +578,7 @@ static Array<InterfaceInfo> findIPAddresses()
     return result;
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool /*includeIPv6*/)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool /*includeIPv6*/, bool /* SMODE onlyOperational = false */)
 {
     for (auto& a : findIPAddresses())
         result.add (a.interfaceAddress);
@@ -592,6 +592,17 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& address)
 
     return {};
 }
+
+// SMODE
+IPAddress IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+  {return {};}
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+  {return {};}
+
+bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
+  {return false;}
+// SMODE
 
 #endif
 

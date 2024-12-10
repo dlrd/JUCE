@@ -86,7 +86,8 @@ public:
     void setMillisecondsBeforeTipAppears (int newTimeMs = 700) noexcept;
 
     /** Can be called to manually force a tip to be shown at a particular location. */
-    void displayTip (Point<int> screenPosition, const String& text);
+    /** SMODE : added virtual to void displayTip() **/
+    virtual void displayTip (Point<int> screenPosition, const String& text);
 
     /** Can be called to manually hide the tip if it's showing. */
     void hideTip();

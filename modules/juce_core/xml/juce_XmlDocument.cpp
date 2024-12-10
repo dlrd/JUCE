@@ -72,7 +72,7 @@ namespace XmlIdentifierChars
     {
         static const uint32 legalChars[] = { 0, 0x7ff6000, 0x87fffffe, 0x7fffffe, 0 };
 
-        return ((int) c < (int) numElementsInArray (legalChars) * 32) ? ((legalChars [c >> 5] & (1 << (c & 31))) != 0)
+        return ((int) c < (int) numElementsInArray (legalChars) * 32) ? ((legalChars [c >> 5] & (uint32) (1 << (c & 31))) != 0)
                                                                       : isIdentifierCharSlow (c);
     }
 
@@ -496,7 +496,18 @@ void XmlDocument::readChildElements (XmlElement& parent)
                 auto closeTag = input.indexOf ((juce_wchar) '>');
 
                 if (closeTag >= 0)
+                {
+                    // Smode Tech dlrd/Smode-Issue#5715
+                    const juce::String closeTagName = String(input + 2, input + closeTag).trim();
+                    if (parent.getTagName() != closeTagName)
+                    {
+                      setLastError("unmatched tag " + closeTagName.quoted() + " expected: " + parent.getTagName().quoted(), false);
+                      break;
+                    }
+
                     input += closeTag + 1;
+
+                }
 
                 break;
             }
@@ -667,7 +678,7 @@ void XmlDocument::readEntity (String& result)
     }
     else if (*input == '#')
     {
-        int charCode = 0;
+        int64_t charCode = 0;
         ++input;
 
         if (*input == 'x' || *input == 'X')
@@ -695,15 +706,26 @@ void XmlDocument::readEntity (String& result)
         {
             int numChars = 0;
 
-            while (input[0] != ';')
+            for (;;)
             {
+                const auto firstChar = input[0];
+
+                if (firstChar == 0)
+            {
+                    setLastError ("unexpected end of input", true);
+                    return;
+                }
+
+                if (firstChar == ';')
+                    break;
+
                 if (++numChars > 12)
                 {
                     setLastError ("illegal escape sequence", true);
                     break;
                 }
 
-                charCode = charCode * 10 + ((int) input[0] - '0');
+                charCode = charCode * 10 + ((int) firstChar - '0');
                 ++input;
             }
 

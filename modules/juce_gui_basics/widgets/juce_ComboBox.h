@@ -71,6 +71,9 @@ public:
     */
     void setEditableText (bool isEditable);
 
+    // SMODE add this but it is conflicting with juce::ComboBox::LookAndFeelMethods global ComboBox Font management design.
+    void setFont (const Font& font);
+
     /** Returns true if the text is directly editable.
         @see setEditableText
     */
@@ -97,7 +100,7 @@ public:
                                 be 0!
         @see setItemEnabled, addSeparator, addSectionHeading, getNumItems, getItemText, getItemId
     */
-    void addItem (const String& newItemText, int newItemId);
+    void addItem (const String& newItemText, int newItemId, /** SMODE add annotation*/ const String& annotation = String(), Colour colour = Colour(0x0));
 
     /** Adds an array of items to the drop-down list.
         The item ID of each item will be its index in the StringArray + firstItemIdOffset.
@@ -109,6 +112,10 @@ public:
         This is like adding a separator to a popup menu. See PopupMenu::addSeparator().
     */
     void addSeparator();
+
+    // SmodeTech
+    void addColumnSeparator();
+    // --
 
     /** Adds a heading to the drop-down list, so that you can group the items into
         different sections.
@@ -158,6 +165,12 @@ public:
         @param index    the item's index from 0 to (getNumItems() - 1)
     */
     String getItemText (int index) const;
+
+    /** SMODE Returns the annotation for one of the items in the list.
+        Note that this doesn't include headers or separators.
+        @param index    the item's index from 0 to (getNumItems() - 1)
+    */
+    String getItemAnnotation(int index) const;
 
     /** Returns the ID for one of the items in the list.
         Note that this doesn't include headers or separators.

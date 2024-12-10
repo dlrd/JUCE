@@ -35,6 +35,21 @@ inline uint32 readUnalignedLittleEndianInt (const void* buffer)
     return ByteOrder::littleEndianInt (&data);
 }
 
+#ifdef JUCE_WIN32 // SMODE for https://github.com/dlrd/Smode-Issues/issues/5336
+
+static std::wstring codePage437ToWideString(const char* filename, int fnlen)
+{
+  std::wstring ret;
+  int len = MultiByteToWideChar(437, MB_PRECOMPOSED, filename, fnlen, NULL, 0);
+  if (len > 0)
+  {
+    ret.resize(len);
+    MultiByteToWideChar(437, MB_PRECOMPOSED, filename, fnlen, &ret[0], len);
+  }
+  return ret;
+}
+#endif // JUCE_WIN32
+
 struct ZipFile::ZipEntryHolder
 {
     ZipEntryHolder (const char* buffer, int fileNameLen)
@@ -50,7 +65,15 @@ struct ZipFile::ZipEntryHolder
         auto fileType   = (externalFileAttributes >> 28) & 0xf;
 
         entry.isSymbolicLink = (fileType == 0xA);
+
+#ifdef JUCE_WIN32 // SMODE for https://github.com/dlrd/Smode-Issues/issues/5336
+        if (CharPointer_UTF8::isValidString(buffer + 46, fileNameLen))
+          entry.filename = String::fromUTF8(buffer + 46, fileNameLen);
+        else
+          entry.filename = codePage437ToWideString(buffer + 46, fileNameLen).c_str();
+#else   // JUCE_WIN32
         entry.filename = String::fromUTF8 (buffer + 46, fileNameLen);
+#endif // JUCE_WIN32
     }
 
     static Time parseFileTime (uint32 time, uint32 date) noexcept

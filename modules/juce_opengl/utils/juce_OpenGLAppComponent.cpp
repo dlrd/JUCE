@@ -33,6 +33,7 @@ OpenGLAppComponent::OpenGLAppComponent()
     openGLContext.setRenderer (this);
     openGLContext.attachTo (*this);
     openGLContext.setContinuousRepainting (true);
+    openGLContext.setOpenGLVersionRequired (OpenGLContext::openGL3_2); // SMODE
 }
 
 OpenGLAppComponent::~OpenGLAppComponent()

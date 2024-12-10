@@ -1288,6 +1288,21 @@ AffineTransform Component::getTransform() const
     return affineTransform != nullptr ? *affineTransform : AffineTransform();
 }
 
+float Component::getApproximateScaleFactorForComponent (Component* targetComponent)
+{
+    AffineTransform transform;
+
+    for (auto* target = targetComponent; target != nullptr; target = target->getParentComponent())
+    {
+        transform = transform.followedBy (target->getTransform());
+
+        if (target->isOnDesktop())
+            transform = transform.scaled (target->getDesktopScaleFactor());
+    }
+
+    return (transform.getScaleFactor() / Desktop::getInstance().getGlobalScaleFactor());
+}
+
 //==============================================================================
 bool Component::hitTest (int x, int y)
 {
@@ -1349,17 +1364,16 @@ bool Component::reallyContains (Point<int> point, bool returnTrueIfWithinAChild)
     return (compAtPosition == this) || (returnTrueIfWithinAChild && isParentOf (compAtPosition));
 }
 
-Component* Component::getComponentAt (Point<int> position)
+Component* Component::getComponentAt (Point<int> position, juce::Component* excludedChild /* Added by SMODE */)
 {
     if (flags.visibleFlag && ComponentHelpers::hitTest (*this, position))
     {
         for (int i = childComponentList.size(); --i >= 0;)
         {
-            auto* child = childComponentList.getUnchecked(i);
-
+            Component* child = childComponentList.getUnchecked(i);
             child = child->getComponentAt (ComponentHelpers::convertFromParentSpace (*child, position));
 
-            if (child != nullptr)
+            if (child != nullptr && child != excludedChild /* condition on excludedChild added by SMODE */)
                 return child;
         }
 
@@ -1830,6 +1844,9 @@ void Component::internalRepaintUnchecked (Rectangle<int> area, bool isEntireComp
                                      : cachedImage->invalidate (area)))
                 return;
 
+        if (area.isEmpty())
+            return;
+
         if (flags.hasHeavyweightPeerFlag)
         {
             if (auto* peer = getPeer())
@@ -1855,7 +1872,7 @@ void Component::paint (Graphics&)
 {
     // if your component is marked as opaque, you must implement a paint
     // method and ensure that its entire area is completely painted.
-    jassert (getBounds().isEmpty() || ! isOpaque());
+    // SMODE jassert (getBounds().isEmpty() || ! isOpaque());
 }
 
 void Component::paintOverChildren (Graphics&)
@@ -2180,7 +2197,7 @@ void Component::mouseDoubleClick (const MouseEvent&)    {}
 void Component::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
     // the base class just passes this event up to its parent..
-    if (parentComponent != nullptr)
+    if (parentComponent != nullptr && e.eventComponent == this) // SMODE only if component is not listening on other one.
         parentComponent->mouseWheelMove (e.getEventRelativeTo (parentComponent), wheel);
 }
 
