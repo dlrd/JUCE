@@ -30,88 +30,6 @@ namespace juce
 extern ComponentPeer* createNonRepaintingEmbeddedWindowsPeer (Component&, void* parent);
 extern bool shouldScaleGLWindow (void* hwnd);
 
-
-// SMODE add debug api
-#ifdef JUCE_DEBUG
-# define GL_DEBUG_SOURCE_API_ARB 0x8246
-# define GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB 0x8247
-# define GL_DEBUG_SOURCE_SHADER_COMPILER_ARB 0x8248
-# define GL_DEBUG_SOURCE_THIRD_PARTY_ARB 0x8249
-# define GL_DEBUG_SOURCE_APPLICATION_ARB 0x824A
-# define GL_DEBUG_SOURCE_OTHER_ARB 0x824B
-# define GL_DEBUG_TYPE_ERROR_ARB 0x824C
-# define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB 0x824D
-# define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB 0x824E
-# define GL_DEBUG_TYPE_PORTABILITY_ARB 0x824F
-# define GL_DEBUG_TYPE_PERFORMANCE_ARB 0x8250
-# define GL_DEBUG_TYPE_OTHER_ARB 0x8251
-# define GL_DEBUG_SEVERITY_HIGH_ARB 0x9146
-# define GL_DEBUG_SEVERITY_MEDIUM_ARB 0x9147
-# define GL_DEBUG_SEVERITY_LOW_ARB 0x9148
-# define GL_DEBUG_OUTPUT_SYNCHRONOUS 0x8242
-
-typedef void (APIENTRY *DEBUGPROC)(GLenum source,
-  GLenum type,
-  GLuint id,
-  GLenum severity,
-  GLsizei length,
-  const GLchar *message,
-  const void *userParam);
-
-#define JUCE_GL_DEBUG_FUNCTIONS(USE_FUNCTION) \
-  USE_FUNCTION (glDebugMessageControl, void, (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled), (source, type, severity, count, ids, enabled)) \
-  USE_FUNCTION (glDebugMessageCallback, void, (DEBUGPROC callback, void * userParam), (callback, userParam))
-
-static void APIENTRY juceDebugCallback(GLenum source,
-  GLenum type,
-  GLuint id,
-  GLenum severity,
-  GLsizei length,
-  const GLchar *message,
-  const void *userParam)
-{
-  String debugSource, debugType, debugSeverity;
-  switch (source)
-  {
-  case GL_DEBUG_SOURCE_API_ARB: debugSource = "OpenGL"; break;
-  case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB: debugSource = "Windows"; break;
-  case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: debugSource = "Shader Compiler"; break;
-  case GL_DEBUG_SOURCE_THIRD_PARTY_ARB: debugSource = "Third Party"; break;
-  case GL_DEBUG_SOURCE_APPLICATION_ARB: debugSource = "Application"; break;
-  case GL_DEBUG_SOURCE_OTHER_ARB:
-  default:
-    debugSource = "Other";
-  }
-
-  switch (type)
-  {
-  case GL_DEBUG_TYPE_ERROR_ARB: debugType = "Error"; break;
-  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: debugType = "Deprecated behavior"; break;
-  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: debugType = "Undefined behavior"; break;
-  case GL_DEBUG_TYPE_PORTABILITY_ARB: debugType = "Portability"; break;
-  case GL_DEBUG_TYPE_PERFORMANCE_ARB: debugType = "Performance"; break;
-  case GL_DEBUG_TYPE_OTHER_ARB:
-  default:
-    debugType = "Other"; break;
-  }
-
-  switch (severity)
-  {
-  case GL_DEBUG_SEVERITY_HIGH_ARB: debugSeverity = "High"; break;
-  case GL_DEBUG_SEVERITY_MEDIUM_ARB: debugSeverity = "Medium"; break;
-  case GL_DEBUG_SEVERITY_LOW_ARB: debugSeverity = "Low"; break;
-  default:
-    debugSeverity = "Other"; break;
-  }
-
-  juce::Logger::outputDebugString(debugSource + " " + debugType + " " + debugSeverity + " " + String(message));
-  if (type == GL_DEBUG_TYPE_ERROR_ARB || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB)
-  {
-    jassertfalse;
-  }
-};
-#endif // JUCE_DEBUG
-
 #if JUCE_MODULE_AVAILABLE_juce_audio_plugin_client && (JucePlugin_Build_VST || JucePlugin_Build_VST3)
  bool juce_shouldDoubleScaleNativeGLWindow();
 #else
@@ -129,7 +47,7 @@ public:
                    const OpenGLPixelFormat& pixelFormat,
                    void* contextToShareWith,
                    bool /*useMultisampling*/,
-                   OpenGLVersion version)
+                   OpenGLVersion)
     {
         dummyComponent.reset (new DummyComponent (*this));
         createNativeWindow (component);
@@ -152,9 +70,7 @@ public:
             auto wglFormat = wglChoosePixelFormatExtension (pixelFormat);
             deactivateCurrentContext();
 
-#ifndef JUCE_OPENGL3 // SMODE: enforce delete old context and create a new one according to specified version
             if (wglFormat != pixFormat && wglFormat != 0)
-#endif  // JUCE_OPENGL3 SMODE
             {
                 // can't change the pixel format of a window, so need to delete the
                 // old one and create a new one..
@@ -165,13 +81,10 @@ public:
                 if (SetPixelFormat (dc, wglFormat, &pfd))
                 {
                     deleteRenderContext();
-                    renderContext = createVersionnedContext(dc, (HGLRC)contextToShareWith, version); /* SMODE */
+                    renderContext = wglCreateContext (dc);
                 }
             }
 
-#ifdef JUCE_OPENGL3 // SMODE createVersionnedContext could manage context sharing
-            if (version != openGL3_2)
-#endif // JUCE_OPENGL3 
             if (contextToShareWith != nullptr)
                 wglShareLists ((HGLRC) contextToShareWith, renderContext);
 
@@ -186,50 +99,16 @@ public:
         releaseDC();
     }
 
-#ifdef JUCE_DEBUG 
-#define JUCE_DECLARE_GL_FUNCTION(name, returnType, params, callparams)      typedef returnType (__stdcall *type_ ## name) params; type_ ## name name;
-    JUCE_GL_DEBUG_FUNCTIONS(JUCE_DECLARE_GL_FUNCTION)
-#endif // JUCE_DEBUG
-
     bool initialiseOnRenderThread (OpenGLContext& c)
     {
         context = &c;
-        
-#ifdef JUCE_DEBUG // SMODE add debug api
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE); // activate all debug output
-        glDebugMessageCallback(juceDebugCallback, nullptr);
-#endif // JUCE_DEBUG  
-
         return true;
     }
 
-    void shutdownOnRenderThread()           
-    { 
-      
-#ifdef JUCE_DEBUG // SMODE add debug api
-      glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(nullptr, nullptr);
-#endif // JUCE_DEBUG
-
-      deactivateCurrentContext(); 
-      context = nullptr; 
-    }
+    void shutdownOnRenderThread()           { deactivateCurrentContext(); context = nullptr; }
 
     static void deactivateCurrentContext()  { wglMakeCurrent (0, 0); }
-    bool makeActive() const noexcept        
-    { 
-      if (isActive())
-        return true;
-
-      bool res = wglMakeCurrent(dc, renderContext) != FALSE;
-      if (!res) // SMODE get the last error just in case
-      {
-        DWORD lastError = GetLastError();
-        jassert(lastError == ERROR_SUCCESS); // should assert
-      }
-      return res;
-    }
+    bool makeActive() const noexcept        { return isActive() || wglMakeCurrent (dc, renderContext) != FALSE; }
     bool isActive() const noexcept          { return wglGetCurrentContext() == renderContext; }
     void swapBuffers() const noexcept       { SwapBuffers (dc); }
 
@@ -307,7 +186,6 @@ private:
     JUCE_DECLARE_WGL_EXTENSION_FUNCTION (wglChoosePixelFormatARB,  BOOL, (HDC, const int*, const FLOAT*, UINT, int*, UINT*))
     JUCE_DECLARE_WGL_EXTENSION_FUNCTION (wglSwapIntervalEXT,       BOOL, (int))
     JUCE_DECLARE_WGL_EXTENSION_FUNCTION (wglGetSwapIntervalEXT,    int, ())
-    JUCE_DECLARE_WGL_EXTENSION_FUNCTION (wglCreateContextAttribsARB, HGLRC, (HDC, HGLRC, const int *)) /**SMODE*/
     #undef JUCE_DECLARE_WGL_EXTENSION_FUNCTION
 
    #if JUCE_WIN_PER_MONITOR_DPI_AWARE
@@ -338,17 +216,7 @@ private:
         JUCE_INIT_WGL_FUNCTION (wglChoosePixelFormatARB);
         JUCE_INIT_WGL_FUNCTION (wglSwapIntervalEXT);
         JUCE_INIT_WGL_FUNCTION (wglGetSwapIntervalEXT);
-        JUCE_INIT_WGL_FUNCTION (wglCreateContextAttribsARB); /**SMODE*/
         #undef JUCE_INIT_WGL_FUNCTION
-
-        // SMODE debug api
-#ifdef JUCE_DEBUG
-        #define JUCE_INIT_GL_FUNCTION(name, returnType, params, callparams) \
-          name = (type_ ## name) OpenGLHelpers::getExtensionFunction (#name);
-
-        JUCE_GL_DEBUG_FUNCTIONS(JUCE_INIT_GL_FUNCTION)
-        #undef JUCE_INIT_GL_FUNCTION
-#endif // JUCE_DEBUG
     }
 
     void createNativeWindow (Component& component)
@@ -375,38 +243,6 @@ private:
         dc = GetDC ((HWND) nativeWindow->getNativeHandle());
     }
 
-    HGLRC createVersionnedContext(HDC dc, HGLRC contextToShareWith, OpenGLVersion version) // SMODE
-    {
-#ifdef JUCE_OPENGL3
-      if (version == openGL3_2)
-      {
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
-#define WGL_CONTEXT_DEBUG_BIT_ARB 0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
-#define WGL_CONTEXT_FLAGS_ARB 0x2094
-        int attribs[64];
-        int numAttribs = 0;
-
-        attribs[numAttribs++] = WGL_CONTEXT_MAJOR_VERSION_ARB; attribs[numAttribs++] = 3;
-        attribs[numAttribs++] = WGL_CONTEXT_MINOR_VERSION_ARB; attribs[numAttribs++] = 3;
-        attribs[numAttribs++] = WGL_CONTEXT_PROFILE_MASK_ARB; attribs[numAttribs++] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-        attribs[numAttribs++] = WGL_CONTEXT_FLAGS_ARB; attribs[numAttribs++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#ifdef JUCE_DEBUG
-          | WGL_CONTEXT_DEBUG_BIT_ARB
-#endif //JUCE_DEBUG
-          ;
-        attribs[numAttribs++] = 0;
-        HGLRC arbRC = wglCreateContextAttribsARB(dc, contextToShareWith, attribs);
-        jassert(arbRC != NULL);
-        return arbRC;
-      }
-      else
-#endif // JUCE_OPENGL3
-        return wglCreateContext (dc);
-    }
-
     void deleteRenderContext()
     {
         if (renderContext != 0)
@@ -427,9 +263,6 @@ private:
         pfd.nSize           = sizeof (pfd);
         pfd.nVersion        = 1;
         pfd.dwFlags         = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
-        // SMODE 
-        pfd.dwFlags |= PFD_SWAP_EXCHANGE; // supposed to be faster on NV SLI but may be slower/problematic on ATI
-        // SMODE
         pfd.iPixelType      = PFD_TYPE_RGBA;
         pfd.iLayerType      = PFD_MAIN_PLANE;
         pfd.cColorBits      = (BYTE) (pixelFormat.redBits + pixelFormat.greenBits + pixelFormat.blueBits);
@@ -484,10 +317,6 @@ private:
                 atts[n++] = WGL_SAMPLES_ARB;
                 atts[n++] = pixelFormat.multisamplingLevel;
             }
-
-            // SMODE
-            atts[n++] = WGL_SWAP_METHOD_ARB;   atts[n++] = 0x2028; /* WGL_SWAP_EXCHANGE_ARB */; // supposed to be faster on NV SLI but may be slower/problematic on ATI
-            // SMODE
 
             atts[n++] = 0;
             jassert (n <= numElementsInArray (atts));

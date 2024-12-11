@@ -984,7 +984,7 @@ struct StateHelpers
                         setActiveTexture (i);
                         JUCE_CHECK_OPENGL_ERROR
 
-                       #if ! JUCE_ANDROID && /** SMODE */! JUCE_OPENGL3
+                       #if ! JUCE_ANDROID
                         if ((textureIndexMask & (1 << i)) != 0)
                             glEnable (GL_TEXTURE_2D);
                         else
@@ -1769,9 +1769,7 @@ struct NonShaderContext   : public LowLevelGraphicsSoftwareRenderer
 
        #if ! JUCE_ANDROID
         target.context.extensions.glActiveTexture (GL_TEXTURE0);
-       #if ! JUCE_OPENGL3 /* SMODE */
         glEnable (GL_TEXTURE_2D);
-       #endif /* SMODE */
         clearGLError();
        #endif
 
