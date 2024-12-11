@@ -119,7 +119,7 @@
  #if JUCE_MINGW
   #define _WIN32_WINNT 0x0501
  #else
-  #define _WIN32_WINNT 0x0601 // SMODE Windows 7 Target instead of Windows 8 0x0602
+  #define _WIN32_WINNT 0x0602
  #endif
  #define _UNICODE 1
  #define UNICODE 1
