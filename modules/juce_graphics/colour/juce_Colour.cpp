@@ -449,7 +449,7 @@ static String convertColorComponentToHexString(uint8 c)
 
 String Colour::toDisplayString(const bool includeAlphaValue) const
 {
-  // SMODE: let alpha component be displayed at the end
+  // SMODE: let alpha component be displayed at the end for (dlrd/Smode-Issues#4430)
   String res = convertColorComponentToHexString(argb.getRed()) +
     convertColorComponentToHexString(argb.getGreen()) +
     convertColorComponentToHexString(argb.getBlue());

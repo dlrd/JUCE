@@ -254,7 +254,7 @@ public:
     */
     int getBoundPort() const noexcept;
 
-    String getBoundHost() const noexcept; // SMODE TECH
+    String getBoundHost() const noexcept; // SMODE TECH for (dlrd/Smode-Issues#6009)
 
     /** Returns the OS's socket handle that's currently open. */
     int getRawSocketHandle() const noexcept                     { return handle; }

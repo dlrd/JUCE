@@ -1016,7 +1016,7 @@ void LookAndFeel_V2::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
             f2.setHeight (f2.getHeight() * 0.75f);
             f2.setHorizontalScale (0.95f);
             g.setFont (f2);
-            g.setColour(textColour.withAlpha(.5f)); // SMODE
+            g.setColour(textColour.withAlpha(.5f)); // SMODE let keyboard shortcut grayed (dlrd/Smode-Issues#2316)
 
             g.drawText (shortcutKeyText, r, Justification::centredRight, true);
         }

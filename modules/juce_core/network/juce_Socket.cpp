@@ -175,7 +175,7 @@ namespace SocketHelpers
         return -1;
     }
 
-    static String getBoundHost(SocketHandle handle) noexcept /* SMODE TECH */
+    static String getBoundHost(SocketHandle handle) noexcept /* SMODE TECH for (dlrd/Smode-Issues#6009)*/
     {
       if (handle >= 0)
       {
@@ -512,7 +512,7 @@ int StreamingSocket::getBoundPort() const noexcept
     return SocketHelpers::getBoundPort (handle);
 }
 
-String StreamingSocket::getBoundHost() const noexcept /* SMODE TECH */
+String StreamingSocket::getBoundHost() const noexcept /* SMODE TECH for (dlrd/Smode-Issues#6009)*/
 {
   return SocketHelpers::getBoundHost(handle);
 }
@@ -701,7 +701,7 @@ int DatagramSocket::getBoundPort() const noexcept
     return (handle >= 0 && isBound) ? SocketHelpers::getBoundPort (handle) : -1;
 }
 
-String DatagramSocket::getBoundHost() const noexcept /* SMODE TECH */
+String DatagramSocket::getBoundHost() const noexcept /* SMODE TECH for (dlrd/Smode-Issues#6009) */
 {
   return (handle >= 0 && isBound) ? SocketHelpers::getBoundHost (handle) : String();
 }

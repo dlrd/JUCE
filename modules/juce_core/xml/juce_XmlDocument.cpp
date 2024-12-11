@@ -706,17 +706,17 @@ void XmlDocument::readEntity (String& result)
         {
             int numChars = 0;
 
-            for (;;)
+            for (;;) // SMODE TECH change the loop for end of input detection for (dlrd/Smode-Issues#5715)
             {
                 const auto firstChar = input[0];
 
-                if (firstChar == 0)
+                if (firstChar == 0) // SMODE 
             {
                     setLastError ("unexpected end of input", true);
-                    return;
+                    return; 
                 }
 
-                if (firstChar == ';')
+                if (firstChar == ';') // SMODE 
                     break;
 
                 if (++numChars > 12)
@@ -725,7 +725,7 @@ void XmlDocument::readEntity (String& result)
                     break;
                 }
 
-                charCode = charCode * 10 + ((int) firstChar - '0');
+                charCode = charCode * 10 + ((int) firstChar /*input[0] SMODE */ - '0');
                 ++input;
             }
 

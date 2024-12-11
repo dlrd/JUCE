@@ -113,7 +113,7 @@ public:
     */
     void addSeparator();
 
-    // SmodeTech
+    // SmodeTech for (dlrd/Smode-Issues#5352)
     void addColumnSeparator();
     // --
 

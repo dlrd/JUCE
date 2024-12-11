@@ -1844,7 +1844,7 @@ void Component::internalRepaintUnchecked (Rectangle<int> area, bool isEntireComp
                                      : cachedImage->invalidate (area)))
                 return;
 
-        if (area.isEmpty())
+        if (area.isEmpty()) // SMODE TECH optim probably for (Smode-Issues#4467)
             return;
 
         if (flags.hasHeavyweightPeerFlag)

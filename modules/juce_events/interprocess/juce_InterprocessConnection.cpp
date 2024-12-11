@@ -199,7 +199,7 @@ String InterprocessConnection::getConnectedHostName() const
 //==============================================================================
 bool InterprocessConnection::sendMessage (const MemoryBlock& message)
 {
-    jassert(magicMessageHeader); // SMODE: ensure magicMessageHeader is set at construction to send first sendMessage or sendMessage after first received packet
+    jassert(magicMessageHeader); // SMODE: ensure magicMessageHeader is set at construction to send first sendMessage or sendMessage after first received packet for dlrd/Smode-Issues#5487)
     uint32 messageHeader[2] = { ByteOrder::swapIfBigEndian (magicMessageHeader),
                                 ByteOrder::swapIfBigEndian ((uint32) message.getSize()) };
 
@@ -344,7 +344,7 @@ bool InterprocessConnection::readNextMessage()
     uint32 messageHeader[2];
     auto bytes = readData (messageHeader, sizeof (messageHeader));
 
-    // SMODE first received message can lazy init magicMessageHeader if set to null at construction
+    // SMODE first received message can lazy init magicMessageHeader if set to null at construction (for dlrd/Smode-Issues#5487)
     if (!magicMessageHeader && bytes >= (int)sizeof(uint32))
       magicMessageHeader = ByteOrder::swapIfBigEndian(messageHeader[0]);
     // SMODE

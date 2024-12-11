@@ -1304,7 +1304,7 @@ void TextEditor::moveCaret (int newCaretPos)
     {
         caretPosition = newCaretPos;
 
-        if (hasKeyboardFocus (false))
+        if (hasKeyboardFocus (false)) // SMODE TECH to avoid timer flood (dlrd/Smode-Issues#3317)
             textHolder->restartTimer();
 
         scrollToMakeSureCursorIsVisible();
