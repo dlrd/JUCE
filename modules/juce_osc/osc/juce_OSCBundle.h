@@ -64,7 +64,7 @@ public:
 
         An OSCBundle Element contains either one OSCMessage or one OSCBundle.
      */
-    class JUCE_API /* SMODE */ Element
+    class JUCE_API  Element
     {
     public:
         //==============================================================================
