@@ -4,7 +4,7 @@
 # Started  : 04/04/2014 11:21            |                                     #
 #/-------------------------------------- . -----------------------------------\#
 
-OPTION(JUCE_MODULE_DISABLE_OPENGL "Disable build of Juce OpenGL Module." OFF)
+OPTION(JUCE_MODULE_DISABLE_OPENGL "Disable build of Juce OpenGL Module." ON)
 if (NOT JUCE_MODULE_DISABLE_OPENGL)
   FIND_PACKAGE(OpenGL REQUIRED)
   SET(JUCE_OPENGL_SOURCES
