@@ -235,6 +235,12 @@ public:
                           int newPosition);
 
 
+    // SMODE make it public
+    int getMinimumSizeOfItems (int startIndex, int endIndex) const;
+    int getNumItems() const
+      {return items.size();}
+    // SMODE
+
 private:
     //==============================================================================
     struct ItemLayoutProperties
@@ -252,7 +258,6 @@ private:
     ItemLayoutProperties* getInfoFor (int itemIndex) const;
     void setTotalSize (int newTotalSize);
     int fitComponentsIntoSpace (int startIndex, int endIndex, int availableSpace, int startPos);
-    int getMinimumSizeOfItems (int startIndex, int endIndex) const;
     int getMaximumSizeOfItems (int startIndex, int endIndex) const;
     void updatePrefSizesToMatchCurrentPositions();
 

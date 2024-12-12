@@ -150,7 +150,7 @@ String JUCEApplicationBase::getCommandLineParameters()          { return {}; }
 
 #else
 
-#if JUCE_WINDOWS && ! defined (_CONSOLE)
+#if JUCE_WINDOWS // SMODE && ! defined (_CONSOLE)
 
 String JUCE_CALLTYPE JUCEApplicationBase::getCommandLineParameters()
 {
@@ -187,13 +187,14 @@ StringArray JUCE_CALLTYPE JUCEApplicationBase::getCommandLineParameterArray()
  extern int juce_gtkWebkitMain (int argc, const char* argv[]);
 #endif
 
-#if JUCE_WINDOWS
- const char* const* juce_argv = nullptr;
- int juce_argc = 0;
-#else
+// SMODE comment this
+// #if JUCE_WINDOWS
+//  const char* const* juce_argv = nullptr;
+//  int juce_argc = 0;
+// #else
  extern const char* const* juce_argv;  // declared in juce_core
  extern int juce_argc;
-#endif
+// #endif
 
 String JUCEApplicationBase::getCommandLineParameters()
 {
@@ -217,12 +218,16 @@ StringArray JUCEApplicationBase::getCommandLineParameterArray()
     return StringArray (juce_argv + 1, juce_argc - 1);
 }
 
+#endif // move by SMODE
+
 int JUCEApplicationBase::main (int argc, const char* argv[])
 {
     JUCE_AUTORELEASEPOOL
     {
+       #if !JUCE_WINDOWS // SMODE add this
         juce_argc = argc;
         juce_argv = argv;
+       #endif            // SMODE add this
 
        #if JUCE_MAC
         initialiseNSApplication();
@@ -242,7 +247,7 @@ int JUCEApplicationBase::main (int argc, const char* argv[])
     }
 }
 
-#endif
+// #endif // SMODE move this
 
 //==============================================================================
 int JUCEApplicationBase::main()

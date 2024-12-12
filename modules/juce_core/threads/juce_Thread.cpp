@@ -91,14 +91,15 @@ void Thread::threadEntryPoint()
         if (affinityMask != 0)
             setCurrentThreadAffinityMask (affinityMask);
 
-        try
-        {
+        // SMODE TECH Let exceptions made the process dye properly with dumped callstack
+        //try
+        //{
             run();
-        }
-        catch (...)
-        {
-            jassertfalse; // Your run() method mustn't throw any exceptions!
-        }
+        //}
+        //catch (...)
+        //{
+        //    jassertfalse; // Your run() method mustn't throw any exceptions!
+        //}
     }
 
     currentThreadHolder->value.releaseCurrentThreadStorage();

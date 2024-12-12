@@ -1,0 +1,5 @@
+commit 07828eb87d5242016b46e69f9ad6aca7878349f6 (HEAD -> develop, origin/develop)
+Author: Tom Poole <thomas.poole@roli.com>
+Date:   Mon Apr 15 15:05:29 2019 +0100
+
+    AAX:  Fixed a potential race condition when suspending a plug-in

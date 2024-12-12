@@ -1093,7 +1093,9 @@ private:
                 dt->setColour (parseColour (xml, "fill", Colours::black)
                                  .withMultipliedAlpha (getStyleAttribute (xml, "fill-opacity", "1").getFloatValue()));
 
-                Rectangle<float> bounds (xCoords[0], yCoords[0] - font.getAscent(),
+                // SmodeTech: added dxCoords to xCoords and dyCoords to yCoords
+                Rectangle<float> bounds(xCoords[0] + dxCoords[0], yCoords[0] + dyCoords[0] - font.getAscent(),
+                // --
                                          font.getStringWidthFloat (text), font.getHeight());
 
                 if (anchorStr == "middle")   bounds.setX (bounds.getX() - bounds.getWidth() / 2.0f);

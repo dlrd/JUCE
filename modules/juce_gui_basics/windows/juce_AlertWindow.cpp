@@ -357,7 +357,7 @@ void AlertWindow::updateLayout (const bool onlyIncreaseSize)
                      messageFont.getStringWidth (getName()));
 
     auto sw = (int) std::sqrt (messageFont.getHeight() * wid);
-    auto w = jmin (300 + sw * 2, (int) (getParentWidth() * 0.7f));
+    auto w = /*jmin */ jmax (300 + sw * 2, (int) (getParentWidth() * 0.7f)); // SMODE avoid to reduce AlertWindow width
     const int edgeGap = 10;
     const int labelHeight = 18;
     int iconSpace = 0;
@@ -383,7 +383,7 @@ void AlertWindow::updateLayout (const bool onlyIncreaseSize)
     }
 
     w = jmax (350, (int) textLayout.getWidth() + iconSpace + edgeGap * 4);
-    w = jmin (w, (int) (getParentWidth() * 0.7f));
+    //w = jmin (w, (int) (getParentWidth() * 0.7f)); // SMODE avoid to reduce AlertWindow width
 
     auto textLayoutH = (int) textLayout.getHeight();
     auto textBottom = 16 + titleH + textLayoutH;
@@ -413,7 +413,7 @@ void AlertWindow::updateLayout (const bool onlyIncreaseSize)
     for (auto* tb : textBlocks)
         w = jmax (w, static_cast<const AlertTextComp*> (tb)->bestWidth);
 
-    w = jmin (w, (int) (getParentWidth() * 0.7f));
+    //w = jmin (w, (int) (getParentWidth() * 0.7f)); // SMODE avoid to reduce AlertWindow width
 
     for (auto* tb : textBlocks)
     {

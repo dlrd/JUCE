@@ -379,14 +379,15 @@ bool ThreadPool::runNextJob (ThreadPoolThread& thread)
         auto result = ThreadPoolJob::jobHasFinished;
         thread.currentJob = job;
 
-        try
-        {
+        // SMODE TECH Let exceptions made the process dye properly with dumped callstack
+        //try
+        //{
             result = job->runJob();
-        }
-        catch (...)
-        {
-            jassertfalse; // Your runJob() method mustn't throw any exceptions!
-        }
+        //}
+        //catch (...)
+        //{
+        //    jassertfalse; // Your runJob() method mustn't throw any exceptions!
+        //}
 
         thread.currentJob = nullptr;
 

@@ -97,6 +97,16 @@ struct ImageCache::Pimpl     : private Timer,
                 images.remove (i);
     }
 
+    // SMODE
+    void releaseImages(juce::Image* image)
+    {
+      const ScopedLock sl (lock);
+      for (int i = images.size(); --i >= 0;)
+        if (!image || image->getPixelData() == images[i].image.getPixelData())
+          images.remove(i);
+    }
+    // -
+
     struct Item
     {
         Image image;
@@ -166,5 +176,12 @@ void ImageCache::releaseUnusedImages()
 {
     Pimpl::getInstance()->releaseUnusedImages();
 }
+
+// SMODE
+void ImageCache::releaseImages(juce::Image* image)
+{
+    Pimpl::getInstance()->releaseImages(image);
+}
+// -
 
 } // namespace juce

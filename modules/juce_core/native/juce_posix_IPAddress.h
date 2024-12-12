@@ -114,7 +114,7 @@ namespace
     }
 }
 
-void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6)
+void IPAddress::findAllAddresses (Array<IPAddress>& result, bool includeIPv6, bool /* SMODE onlyOperational = false */)
 {
     for (auto& i : getAllInterfaceInfo())
         if (includeIPv6 || ! i.interfaceAddress.isIPv6)
@@ -130,4 +130,16 @@ IPAddress IPAddress::getInterfaceBroadcastAddress (const IPAddress& interfaceAdd
     return {};
 }
 
+// SMODE
+String IPAddress::getInterfaceFriendlyName(const IPAddress& interfaceAddress)
+  {return {};}
+
+String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
+  {return {};}
+
+bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
+  {return false;}
+// SMODE
+
 } // namespace juce
+

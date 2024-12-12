@@ -41,7 +41,7 @@ LookAndFeel::LookAndFeel()
     /* if this fails it means you're trying to create a LookAndFeel object before
        the static Colours have been initialised. That ain't gonna work. It probably
        means that you're using a static LookAndFeel object and that your compiler has
-       decided to intialise it before the Colours class.
+       decided to initialise it before the Colours class.
     */
     jassert (Colours::white == Colour (0xffffffff));
 
@@ -81,7 +81,7 @@ Colour LookAndFeel::findColour (int colourID) const noexcept
     auto index = colours.indexOf (c);
 
     if (index >= 0)
-        return colours.getReference (index).colour;
+        return colours[index].colour;
 
     jassertfalse;
     return Colours::black;
@@ -131,6 +131,21 @@ Typeface::Ptr LookAndFeel::getTypefaceForFont (const Font& font)
         }
     }
 
+    // SMODE
+    if (defaultFixed.isNotEmpty() && font.getTypefaceName() == Font::getDefaultMonospacedFontName())
+    {
+      if (defaultTypefaceFixed != nullptr)
+          return defaultTypefaceFixed;
+
+      if (defaultFixed.isNotEmpty())
+      {
+        Font f(font);
+        f.setTypefaceName(defaultFixed);
+        return Typeface::createSystemTypefaceFor(f);
+      }
+    }
+    // SMODE
+
     return Font::getDefaultTypefaceForFont (font);
 }
 
@@ -153,6 +168,24 @@ void LookAndFeel::setDefaultSansSerifTypefaceName (const String& newName)
     }
 }
 
+void LookAndFeel::setDefaultFixedTypeface(Typeface::Ptr newDefaultTypeface) // SMODE
+{
+    if (defaultTypefaceFixed != newDefaultTypeface)
+    {
+        defaultTypefaceFixed = newDefaultTypeface;
+        Typeface::clearTypefaceCache();
+    }
+}
+
+void LookAndFeel::setDefaultFixedTypefaceName(const String& newName) // SMODE
+{
+    if (defaultFixed != newName)
+    {
+        Typeface::clearTypefaceCache();
+        defaultFixed = newName;
+    }
+}
+
 //==============================================================================
 MouseCursor LookAndFeel::getMouseCursorFor (Component& component)
 {
@@ -168,10 +201,11 @@ MouseCursor LookAndFeel::getMouseCursorFor (Component& component)
     return cursor;
 }
 
-LowLevelGraphicsContext* LookAndFeel::createGraphicsContext (const Image& imageToRenderOn, const Point<int>& origin,
-                                                             const RectangleList<int>& initialClip)
+std::unique_ptr<LowLevelGraphicsContext> LookAndFeel::createGraphicsContext (const Image& imageToRenderOn,
+                                                                             Point<int> origin,
+                                                                             const RectangleList<int>& initialClip)
 {
-    return new LowLevelGraphicsSoftwareRenderer (imageToRenderOn, origin, initialClip);
+    return std::make_unique<LowLevelGraphicsSoftwareRenderer> (imageToRenderOn, origin, initialClip);
 }
 
 //==============================================================================

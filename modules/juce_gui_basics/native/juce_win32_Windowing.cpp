@@ -4023,7 +4023,8 @@ private:
     void timerCallback() override
     {
         handlePositionChanged();
-        stopTimer();
+        if (isValidPeer(this)) // Smode check if this have been deleted (may happen on Preference panel opening during premature focus lost due to third party application (dlrd/Smode-Issues#5813)
+            stopTimer();
     }
 
     IMEHandler imeHandler;

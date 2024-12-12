@@ -306,8 +306,8 @@ class ASIOAudioIODeviceType;
 static void sendASIODeviceChangeToListeners (ASIOAudioIODeviceType*);
 
 //==============================================================================
-class ASIOAudioIODevice  : public AudioIODevice,
-                           private Timer
+class ASIOAudioIODevice  : public AudioIODevice
+                           //  ,private Timer SMODE do not use message thread anymore (dlrd/Smode-Issues#3737)
 {
 public:
     ASIOAudioIODevice (ASIOAudioIODeviceType* ownerType, const String& devName,
@@ -603,7 +603,7 @@ public:
     void close() override
     {
         error.clear();
-        stopTimer();
+        //stopTimer(); // SMODE (dlrd/Smode-Issues#3737)
         stop();
 
         if (asioObject != nullptr && deviceIsOpen)
@@ -696,14 +696,19 @@ public:
 
     void resetRequest() noexcept
     {
-        startTimer (500);
+       resetRequested = true; // SMODE (dlrd/Smode-Issues#3737)
+        // startTimer (500);
     }
 
-    void timerCallback() override
+    // SMODE passive reset request outside ui thread (dlrd/Smode-Issues#3737)
+    int isResetRequested() const noexcept override 
+      { return resetRequested; }
+
+    void performReset() override  // instead of timerCallback()
     {
         if (! insideControlPanelModalLoop)
         {
-            stopTimer();
+            resetRequested = false;
             JUCE_ASIO_LOG ("restart request!");
 
             auto* oldCallback = currentCallback;
@@ -719,11 +724,8 @@ public:
 
             sendASIODeviceChangeToListeners (owner);
         }
-        else
-        {
-            startTimer (100);
-        }
     }
+    // SMODE passive reset request outside ui thread (dlrd/Smode-Issues#3737)
 
 private:
     //==============================================================================
@@ -763,6 +765,7 @@ private:
     bool insideControlPanelModalLoop = false;
     bool shouldUsePreferredSize = false;
     int xruns = 0;
+    volatile bool resetRequested = false; // SMODE (dlrd/Smode-Issues#3737)
 
     //==============================================================================
     static String convertASIOString (char* text, int length)
@@ -1008,6 +1011,19 @@ private:
         numActiveInputChans = 0;
         numActiveOutputChans = 0;
 
+        // SMODE update totalNumInputChans/totalNumOutputChans before use them
+        long newInps = 0, newOuts = 0;
+        asioObject->getChannels(&newInps, &newOuts);
+
+        if (totalNumInputChans != newInps || totalNumOutputChans != newOuts)
+        {
+          totalNumInputChans = newInps;
+          totalNumOutputChans = newOuts;
+
+          JUCE_ASIO_LOG (String ((int) totalNumInputChans) + " in; " + String ((int)totalNumOutputChans) + " out");
+        }
+        // SMODE
+
         auto* info = bufferInfos.get();
         int numChans = 0;
 
@@ -1041,16 +1057,7 @@ private:
             JUCE_ASIO_LOG_ERROR ("dummy buffers", err);
         }
 
-        long newInps = 0, newOuts = 0;
-        asioObject->getChannels (&newInps, &newOuts);
-
-        if (totalNumInputChans != newInps || totalNumOutputChans != newOuts)
-        {
-            totalNumInputChans = newInps;
-            totalNumOutputChans = newOuts;
-
-            JUCE_ASIO_LOG (String ((int) totalNumInputChans) + " in; " + String ((int) totalNumOutputChans) + " out");
-        }
+        // SMODE old total input output calculation emplacement.
 
         updateSampleRates();
         reloadChannelNames();
@@ -1253,7 +1260,7 @@ private:
 
         deviceIsOpen = false;
         needToReset = false;
-        stopTimer();
+        // stopTimer(); // SMODE (dlrd/Smode-Issues#3737)
         return error;
     }
 

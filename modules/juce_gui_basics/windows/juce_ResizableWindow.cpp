@@ -581,11 +581,12 @@ bool ResizableWindow::restoreWindowStateFromString (const String& s)
         peer->setNonFullScreenBounds (newPos);
     }
 
-    updateLastPosIfNotFullScreen();
-
+    // SMODE: fix with different order of Julian proposal 
+    // https://forum.juce.com/t/restorewindowstatefromstring-and-multiple-display/13808
     if (fs)
         setBoundsConstrained (newPos);
 
+    updateLastPosIfNotFullScreen();
     setFullScreen (fs);
 
     if (! fs)

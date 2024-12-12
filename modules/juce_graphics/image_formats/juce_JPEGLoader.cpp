@@ -24,6 +24,8 @@
   ==============================================================================
 */
 
+#include <csetjmp> // SMODE for jmp_buf
+
 namespace juce
 {
 
@@ -75,31 +77,55 @@ namespace jpeglibNamespace
     #include "jpglib/jcmaster.c"
     #include "jpglib/jcomapi.c"
     #include "jpglib/jcparam.c"
-    #include "jpglib/jcphuff.c"
+    // SMODE TECH libjpeg9 #include "jpglib/jcphuff.c"
     #include "jpglib/jcprepct.c"
     #include "jpglib/jcsample.c"
+    #define my_coef_controller my_coef_controller2 // SMODE fix name conflict on several compilation unit
+    #define my_coef_ptr my_coef_ptr2 // SMODE fix name conflict on several compilation unit
+    #define start_iMCU_row start_iMCU_row2 // SMODE fix name conflict on several compilation unit
+    #define start_pass_coef start_pass_coef2  // SMODE fix name conflict on several compilation unit
+    #define compress_output compress_output2  // SMODE fix name conflict on several compilation unit
     #include "jpglib/jctrans.c"
     #include "jpglib/jdapistd.c"
     #include "jpglib/jdapimin.c"
     #include "jpglib/jdatasrc.c"
+    #define my_coef_controller my_coef_controller3 // SMODE fix name conflict on several compilation unit
+    #define my_coef_ptr my_coef_ptr3 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdcoefct.c"
     #undef FIX
+    #define my_color_converter my_color_converter2 // SMODE fix name conflict on several compilation unit
+    #define my_cconvert_ptr my_cconvert_ptr2 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdcolor.c"
     #undef FIX
     #include "jpglib/jddctmgr.c"
     #undef CONST_BITS
     #undef ASSIGN_STATE
+
+    #define savable_state savable_state2 // SMODE fix name conflict on several compilation unit
+    #define huff_entropy_encoder huff_entropy_encoder2 // SMODE fix name conflict on several compilation unit
+    #define huff_entropy_ptr huff_entropy_ptr2 // SMODE fix name conflict on several compilation unit
+
     #include "jpglib/jdhuff.c"
     #include "jpglib/jdinput.c"
+
+    #define my_main_controller my_main_controller2 // SMODE fix name conflict on several compilation unit
+    #define my_main_ptr my_main_ptr2 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdmainct.c"
+
+    #define my_marker_ptr  my_marker_writer_ptr // SMODE fix name conflict on several compilation unit
+    #define my_master_ptr my_decomp_master_ptr // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdmarker.c"
     #include "jpglib/jdmaster.c"
     #undef FIX
+    #define build_ycc_rgb_table build_ycc_rgb_table2 // SMODE fix name conflict on several compilation unit
+    #define build_bg_ycc_rgb_table build_bg_ycc_rgb_table2 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdmerge.c"
     #undef ASSIGN_STATE
-    #include "jpglib/jdphuff.c"
+    // SMODE TECH libjpeg9 #include "jpglib/jdphuff.c"
     #include "jpglib/jdpostct.c"
     #undef FIX
+    #define my_upsampler my_upsampler2 // SMODE fix name conflict on several compilation unit
+    #define my_upsample_ptr my_upsample_ptr2 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jdsample.c"
     #include "jpglib/jdtrans.c"
     #include "jpglib/jfdctflt.c"
@@ -121,13 +147,30 @@ namespace jpeglibNamespace
     #undef MULTIPLY
     #undef DEQUANTIZE
     #include "jpglib/jidctint.c"
-    #include "jpglib/jidctred.c"
+    // SMODE TECH libjpeg9 #include "jpglib/jidctred.c"
     #include "jpglib/jmemmgr.c"
     #include "jpglib/jmemnobs.c"
     #include "jpglib/jquant1.c"
+    #define my_cquantizer my_cquantizer2 // SMODE fix name conflict on several compilation unit
+    #define my_cquantize_ptr my_cquantize_ptr2 // SMODE fix name conflict on several compilation unit
     #include "jpglib/jquant2.c"
     #include "jpglib/jutils.c"
     #include "jpglib/transupp.c"
+
+    # include "jpglib/jaricom.c"  // SMODE TECH libjpeg9 
+    #define encode_mcu_DC_first encode_mcu_DC_first2 // SMODE fix name conflict on several compilation unit
+    #define encode_mcu_AC_first encode_mcu_AC_first2 // SMODE fix name conflict on several compilation unit
+    #define encode_mcu_DC_refine encode_mcu_DC_refine2 // SMODE fix name conflict on several compilation unit
+    #define encode_mcu_AC_refine encode_mcu_AC_refine2  // SMODE fix name conflict on several compilation unit
+    # include "jpglib/jcarith.c"  // SMODE TECH libjpeg9 
+    #define arith_entropy_decoder arith_entropy_decoder2 // SMODE fix name conflict on several compilation unit
+    #define arith_entropy_ptr arith_entropy_ptr2 // SMODE fix name conflict on several compilation unit
+    #define process_restart process_restart2 // SMODE fix name conflict on several compilation unit
+    #define decode_mcu_DC_first decode_mcu_DC_first2 // SMODE fix name conflict on several compilation unit
+    #define decode_mcu_AC_first decode_mcu_AC_first2 // SMODE fix name conflict on several compilation unit
+    #define decode_mcu_DC_refine decode_mcu_DC_refine2 // SMODE fix name conflict on several compilation unit
+    #define decode_mcu_AC_refine decode_mcu_AC_refine2 // SMODE fix name conflict on several compilation unit
+    # include "jpglib/jdarith.c"  // SMODE TECH libjpeg9 
 
     #if JUCE_CLANG
      #pragma clang diagnostic pop
@@ -155,11 +198,25 @@ namespace JPEGHelpers
 {
     using namespace jpeglibNamespace;
 
+    struct my_error_mgr  // SMODE
+    {
+        struct jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+    };
+    typedef struct my_error_mgr* my_error_ptr;
+
+
    #if ! (JUCE_WINDOWS && (JUCE_MSVC || JUCE_CLANG))
     using jpeglibNamespace::boolean;
    #endif
 
-    static void fatalErrorHandler (j_common_ptr p)          { *((bool*) (p->client_data)) = true; }
+    static void fatalErrorHandler (j_common_ptr p)          
+    { 
+      *((bool*) (p->client_data)) = true; 
+      // SMODE avoid jpeg error to do not return and crash 
+      my_error_ptr myerr = (my_error_ptr)p->err;
+      longjmp(myerr->setjmp_buffer, 1);
+    }
     static void silentErrorCallback1 (j_common_ptr)         {}
     static void silentErrorCallback2 (j_common_ptr, int)    {}
     static void silentErrorCallback3 (j_common_ptr, char*)  {}
@@ -283,9 +340,15 @@ Image JPEGImageFormat::decodeImage (InputStream& in)
     {
         struct jpeg_decompress_struct jpegDecompStruct;
 
-        struct jpeg_error_mgr jerr;
-        setupSilentErrorHandler (jerr);
-        jpegDecompStruct.err = &jerr;
+        struct my_error_mgr jerr; // SMODE
+        setupSilentErrorHandler (jerr.pub);
+        jpegDecompStruct.err = &jerr.pub;
+
+        if (setjmp(jerr.setjmp_buffer))  // SMODE
+        {
+            jpeg_destroy_decompress(&jpegDecompStruct);
+            return image;
+        }
 
         jpeg_create_decompress (&jpegDecompStruct);
 
@@ -385,9 +448,15 @@ bool JPEGImageFormat::writeImageToStream (const Image& image, OutputStream& out)
     zerostruct (jpegCompStruct);
     jpeg_create_compress (&jpegCompStruct);
 
-    struct jpeg_error_mgr jerr;
-    setupSilentErrorHandler (jerr);
-    jpegCompStruct.err = &jerr;
+    struct my_error_mgr jerr; // SMODE
+    setupSilentErrorHandler (jerr.pub);
+    jpegCompStruct.err = &jerr.pub;
+
+    if (setjmp(jerr.setjmp_buffer))  // SMODE
+    {
+      jpeg_destroy_compress(&jpegCompStruct);
+      return false;
+    }
 
     JuceJpegDest dest;
     jpegCompStruct.dest = &dest;

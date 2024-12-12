@@ -65,7 +65,7 @@ public:
         @see ButtonStyle, setButtonStyle, setImages
     */
     DrawableButton (const String& buttonName,
-                    ButtonStyle buttonStyle);
+                    ButtonStyle buttonStyle /* SMODE add default value*/  = ImageFitted);
 
     /** Destructor. */
     ~DrawableButton() override;

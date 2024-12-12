@@ -94,10 +94,10 @@ void TooltipWindow::displayTip (Point<int> screenPos, const String& tip)
         {
             updatePosition (tip, screenPos, Desktop::getInstance().getDisplays().findDisplayForPoint (screenPos).userArea);
 
-            addToDesktop (ComponentPeer::windowHasDropShadow
-                            | ComponentPeer::windowIsTemporary
+            addToDesktop (/*ComponentPeer::windowHasDropShadow /* SMODE remove tooltips drop shadow that can overlap output windows (dlrd/Smode-Issues#4363)
+                            | */ComponentPeer::windowIsTemporary
                             | ComponentPeer::windowIgnoresKeyPresses
-                            | ComponentPeer::windowIgnoresMouseClicks);
+                            /* SMODE: flag added in Juce 4.3.0 create invisible tooltips issues | ComponentPeer::windowIgnoresMouseClicks*/);
         }
 
        #if JUCE_DEBUG

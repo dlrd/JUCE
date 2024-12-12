@@ -284,7 +284,12 @@ public:
                     sendMouseDrag (*current, newScreenPos + unboundedMouseOffset, time);
 
                     if (isUnboundedMouseModeOn)
+                    {
+                      if (getComponentUnderMouse() == nullptr)
+                        jassertfalse; // SMODE
+                      else
                         handleUnboundedDrag (*current);
+                    }
                 }
                 else
                 {
