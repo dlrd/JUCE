@@ -212,6 +212,20 @@ namespace SocketHelpers
         return -1;
     }
 
+    static String getBoundHost(SocketHandle handle) noexcept /* SMODE TECH */
+    {
+      if (handle >= 0)
+      {
+        struct sockaddr_in addr;
+        socklen_t len = sizeof(addr);
+
+        if (getsockname(handle, (struct sockaddr*)&addr, &len) == 0)
+          return inet_ntoa(addr.sin_addr);
+      }
+
+      return {};
+    }
+
     static String getConnectedAddress (SocketHandle handle) noexcept
     {
         struct sockaddr_in addr;
@@ -557,6 +571,11 @@ int StreamingSocket::getBoundPort() const noexcept
     return SocketHelpers::getBoundPort ((SocketHandle) handle.load());
 }
 
+String StreamingSocket::getBoundHost() const noexcept /* SMODE TECH */
+{
+  return SocketHelpers::getBoundHost ((SocketHandle) handle.load());
+}
+
 bool StreamingSocket::connect (const String& remoteHostName, int remotePortNumber, int timeOutMillisecs)
 {
     jassert (SocketHelpers::isValidPortNumber (remotePortNumber));
@@ -738,6 +757,11 @@ bool DatagramSocket::bindToPort (int port, const String& addr)
 int DatagramSocket::getBoundPort() const noexcept
 {
     return (handle >= 0 && isBound) ? SocketHelpers::getBoundPort ((SocketHandle) handle.load()) : -1;
+}
+
+String DatagramSocket::getBoundHost() const noexcept /* SMODE TECH */
+{
+  return (handle >= 0 && isBound) ? SocketHelpers::getBoundHost(handle) : String();
 }
 
 //==============================================================================
