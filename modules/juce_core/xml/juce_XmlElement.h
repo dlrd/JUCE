@@ -797,7 +797,7 @@ private:
 
     XmlElement (int) noexcept;
     void copyChildrenAndAttributesFrom (const XmlElement&);
-    void writeElementAsText (OutputStream&, int, int, const char*) const;
+    void writeElementAsText (OutputStream&, int, int, const char*, bool ignoreIdentationOnFirstLine /* SMODE */) const;
     void getChildElementsAsArray (XmlElement**) const noexcept;
     void reorderChildElements (XmlElement**, int) noexcept;
     XmlAttributeNode* getAttribute (StringRef) const noexcept;

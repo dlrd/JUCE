@@ -155,6 +155,8 @@ public:
     */
     int getBoundPort() const noexcept;
 
+    String getBoundHost() const noexcept; // SMODE TECH
+
     /** Tries to connect the socket to hostname:port.
 
         If timeOutMillisecs is 0, then this method will block until the operating system
@@ -348,6 +350,8 @@ public:
     */
     int getBoundPort() const noexcept;
 
+    String getBoundHost() const noexcept; // SMODE TECH for (dlrd/Smode-Issues#6009)
+
     /** Returns the OS's socket handle that's currently open. */
     int getRawSocketHandle() const noexcept                     { return handle; }
 
@@ -458,6 +462,7 @@ private:
     int lastServerPort = -1;
     void* lastServerAddress = nullptr;
     mutable CriticalSection readLock;
+    bool allowBroadcast; // SMODE
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DatagramSocket)
 };

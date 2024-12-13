@@ -1043,7 +1043,7 @@ public:
                     instead call getComponentAt on the top-level parent of this component.
         @see hitTest, contains, reallyContains
     */
-    Component* getComponentAt (int x, int y);
+    Component* getComponentAt (int x, int y, /* SMODE */Component* excludedChild = nullptr);
 
     /** Returns the component at a certain point within this one.
 
@@ -1054,7 +1054,7 @@ public:
                     instead call getComponentAt on the top-level parent of this component.
         @see hitTest, contains, reallyContains
     */
-    Component* getComponentAt (Point<int> position);
+    Component* getComponentAt (Point<int> position, /* SMODE */Component* excludedChild = nullptr);
 
     /** Returns the component at a certain point within this one.
 
@@ -1065,7 +1065,7 @@ public:
                     instead call getComponentAt on the top-level parent of this component.
         @see hitTest, contains, reallyContains
     */
-    Component* getComponentAt (Point<float> position);
+    Component* getComponentAt (Point<float> position, /* SMODE */Component* excludedChild = nullptr);
 
     //==============================================================================
     /** Marks the whole component as needing to be redrawn.

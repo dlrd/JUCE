@@ -139,6 +139,21 @@ Typeface::Ptr LookAndFeel::getTypefaceForFont (const Font& font)
         }
     }
 
+    // SMODE
+    if (defaultFixed.isNotEmpty() && font.getTypefaceName() == Font::getDefaultMonospacedFontName())
+    {
+      if (defaultTypefaceFixed != nullptr)
+          return defaultTypefaceFixed;
+
+      if (defaultFixed.isNotEmpty())
+      {
+        Font f(font);
+        f.setTypefaceName(defaultFixed);
+        return Typeface::createSystemTypefaceFor(f);
+      }
+    }
+    // SMODE
+
     return Font::getDefaultTypefaceForFont (font);
 }
 
@@ -158,6 +173,24 @@ void LookAndFeel::setDefaultSansSerifTypefaceName (const String& newName)
         defaultTypeface.reset();
         Typeface::clearTypefaceCache();
         defaultSans = newName;
+    }
+}
+
+void LookAndFeel::setDefaultFixedTypeface(Typeface::Ptr newDefaultTypeface) // SMODE
+{
+    if (defaultTypefaceFixed != newDefaultTypeface)
+    {
+        defaultTypefaceFixed = newDefaultTypeface;
+        Typeface::clearTypefaceCache();
+    }
+}
+
+void LookAndFeel::setDefaultFixedTypefaceName(const String& newName) // SMODE
+{
+    if (defaultFixed != newName)
+    {
+        Typeface::clearTypefaceCache();
+        defaultFixed = newName;
     }
 }
 

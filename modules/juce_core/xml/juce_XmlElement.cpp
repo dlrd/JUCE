@@ -267,9 +267,10 @@ namespace XmlOutputFunctions
 void XmlElement::writeElementAsText (OutputStream& outputStream,
                                      int indentationLevel,
                                      int lineWrapLength,
-                                     const char* newLineChars) const
+                                     const char* newLineChars,
+                                     bool ignoreIdentationOnFirstLine /* SMODE*/) const
 {
-    if (indentationLevel >= 0)
+    if (indentationLevel >= 0 && !ignoreIdentationOnFirstLine) // ignoreIdentationOnFirstLine has been added by SMODE (dlrd/Smode-Issues#3807)
         XmlOutputFunctions::writeSpaces (outputStream, (size_t) indentationLevel);
 
     if (! isTextElement())
@@ -319,7 +320,7 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
 
                     child->writeElementAsText (outputStream,
                                                lastWasTextNode ? 0 : (indentationLevel + (indentationLevel >= 0 ? 2 : 0)), lineWrapLength,
-                                               newLineChars);
+                                               newLineChars, lastWasTextNode); // SMODE (dlrd/Smode-Issues#3807));
                     lastWasTextNode = false;
                 }
             }
@@ -410,7 +411,7 @@ void XmlElement::writeTo (OutputStream& output, const TextFormat& options) const
 
     writeElementAsText (output, options.newLineChars == nullptr ? -1 : 0,
                         options.lineWrapLength,
-                        options.newLineChars);
+                        options.newLineChars, false /* Smode Tech (dlrd/Smode-Issues#3807) */);
 
     if (options.newLineChars != nullptr)
         output << options.newLineChars;

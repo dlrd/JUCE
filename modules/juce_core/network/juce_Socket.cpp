@@ -715,8 +715,15 @@ bool DatagramSocket::bindToPort (int port, const String& addr)
 {
     jassert (SocketHelpers::isValidPortNumber (port));
 
-    if (handle < 0)
-        return false;
+    if (handle < 0) // SMODE socket has been previously shutdown
+    {
+      handle = (int)socket(AF_INET, SOCK_DGRAM, 0);
+      if (handle >= 0)
+      {
+        SocketHelpers::resetSocketOptions(handle, true, allowBroadcast, options);
+        SocketHelpers::makeReusable(handle);
+      }
+   }
 
     if (SocketHelpers::bindSocket ((SocketHandle) handle.load(), port, addr))
     {

@@ -253,7 +253,10 @@ public:
     void addItem (int itemResultID,
                   String itemText,
                   bool isEnabled = true,
-                  bool isTicked = false);
+                  bool isTicked = false,
+                  const String& annotation = String(), /**SMODE add custom annotation who override shortcutKeyDescription */
+                  const juce::Colour colour = juce::Colour(0x0));  /** SMODE add custom colour */
+
 
     /** Appends a new item with an icon.
 
@@ -423,6 +426,10 @@ public:
         always look ok.
     */
     void addSeparator();
+
+    // Smode Tech for (dlrd/Smode-Issues#5352)
+    void addColumnSeparator();
+    // --
 
     /** Adds a non-clickable text item to the menu.
         This is a bold-font items which can be used as a header to separate the items
@@ -753,6 +760,11 @@ public:
     void showMenuAsync (const Options& options,
                         std::function<void (int)> callback);
 
+    // SMODE
+    Component* showMenuAsyncAndGetComponent(const Options& options,
+                        ModalComponentManager::Callback* callback) const;
+    static int menuAsyncCurrentIdUnderMouse(Component* component);
+
     //==============================================================================
     /** Closes any menus that are currently open.
 
@@ -868,6 +880,10 @@ public:
             independently accessible.
         */
         explicit CustomComponent (bool isTriggeredAutomatically);
+
+        // SMODE
+        virtual bool shouldShowSubMenu() const
+          {return true;}
 
         /** Returns a rectangle with the size that this component would like to have.
 
@@ -1048,6 +1064,11 @@ public:
     [[deprecated ("Use the new method.")]]
     int drawPopupMenuItem (Graphics&, int, int, bool, bool, bool, bool, bool, const String&, const String&, Image*, const Colour*) { return 0; }
    #endif
+
+    // SMODE
+    int showWithOptionalCallbackAndGetComponent(const Options&, ModalComponentManager::Callback*, bool, Component**) const;
+    Component* getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback,
+      const bool canBeModal);
 
 private:
     //==============================================================================
