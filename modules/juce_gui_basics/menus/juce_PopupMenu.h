@@ -353,7 +353,8 @@ public:
     void addCustomItem (int itemResultID,
                         std::unique_ptr<CustomComponent> customComponent,
                         std::unique_ptr<const PopupMenu> optionalSubMenu = nullptr,
-                        const String& itemTitle = {});
+                        const String& itemTitle = {},
+                        bool isEnabled = true /*SMODE */);
 
     /** Appends a custom menu item that can't be used to trigger a result.
 

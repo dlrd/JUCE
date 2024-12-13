@@ -1950,11 +1950,13 @@ void PopupMenu::addColouredItem (int itemResultID, String itemText, Colour itemT
 void PopupMenu::addCustomItem (int itemResultID,
                                std::unique_ptr<CustomComponent> cc,
                                std::unique_ptr<const PopupMenu> subMenu,
-                               const String& itemTitle)
+                               const String& itemTitle, 
+                               bool isEnabled /*SMODE */)
 {
     Item i;
     i.text = itemTitle;
     i.itemID = itemResultID;
+    i.isEnabled = isEnabled; // SMODE
     i.customComponent = cc.release();
     i.subMenu.reset (createCopyIfNotNull (subMenu.get()));
 
