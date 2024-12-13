@@ -4,8 +4,8 @@
 # Started  : 04/04/2014 11:21            |                                     #
 #/-------------------------------------- . -----------------------------------\#
 
-OPTION(JUCE_MODULE_DISABLE_OPENGL "Disable build of Juce OpenGL Module." ON)
-if (NOT JUCE_MODULE_DISABLE_OPENGL)
+OPTION(JUCE_MODULE_AVAILABLE_juce_opengl "build Juce OpenGL Module." OFF)
+if (JUCE_MODULE_AVAILABLE_juce_opengl)
   FIND_PACKAGE(OpenGL REQUIRED)
   SET(JUCE_OPENGL_SOURCES
     modules/juce_opengl/juce_opengl.cpp
@@ -57,16 +57,16 @@ SET(JUCE_GRAPHICS_SOURCES
   modules/juce_graphics/juce_graphics.h
 )
 
-OPTION(JUCE_MODULE_DISABLE_GUI_BASICS "Disable build of Juce GUI basics module." OFF)
-if (NOT JUCE_MODULE_DISABLE_GUI_BASICS)
+OPTION(JUCE_MODULE_AVAILABLE_juce_gui_basics "Build of Juce GUI basics module." ON)
+if (JUCE_MODULE_AVAILABLE_juce_gui_basics)
   SET(JUCE_GUI_BASICS_SOURCES
     modules/juce_gui_basics/juce_gui_basics.cpp
     modules/juce_gui_basics/juce_gui_basics.h
   )
 endif ()
 
-OPTION(JUCE_MODULE_DISABLE_GUI_EXTRA "Disable build of Juce GUI extra module." OFF)
-if (NOT JUCE_MODULE_DISABLE_GUI_EXTRA)
+OPTION(JUCE_MODULE_AVAILABLE_juce_gui_extra "Build of Juce GUI extra module." ON)
+if (JUCE_MODULE_AVAILABLE_juce_gui_extra)
   SET(JUCE_GUI_EXTRA_SOURCES
     modules/juce_gui_extra/juce_gui_extra.cpp
     modules/juce_gui_extra/juce_gui_extra.h
@@ -95,18 +95,18 @@ SET(JUCE_SOURCES
 
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
-if (JUCE_MODULE_DISABLE_OPENGL)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_OPENGL=1)
-else ()
+if (JUCE_MODULE_AVAILABLE_juce_opengl)
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_opengl=1)
   target_include_directories(juce PRIVATE ${OPENGL_INCLUDE_DIR})
   target_link_libraries(juce PRIVATE ${OPENGL_LIBRARIES})
 endif ()
 
-if (JUCE_MODULE_DISABLE_GUI_BASICS)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_BASICS=1)
+if (JUCE_MODULE_AVAILABLE_juce_gui_basics)
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_gui_basics=1)
 endif ()
-if (JUCE_MODULE_DISABLE_GUI_EXTRA)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_DISABLE_GUI_EXTRA=1)
+
+if (JUCE_MODULE_AVAILABLE_juce_gui_extra)
+  target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_gui_extra=1)
 endif ()
 
 # Enable stack-unwinding support in c objects on gcc-based platforms.
@@ -136,7 +136,7 @@ else ()
       set_source_files_properties(${JUCE_SOURCES}
         PROPERTIES COMPILE_FLAGS "-x objective-c++")
     else ()
-      if (NOT JUCE_MODULE_DISABLE_GUI_BASICS)
+      if (JUCE_MODULE_AVAILABLE_juce_gui_basics)
         FIND_PACKAGE(X11 REQUIRED)
         target_include_directories(juce PRIVATE ${X11_INCLUDE_DIR})
         target_link_libraries(juce PRIVATE ${X11_LIBRARIES})
@@ -147,6 +147,32 @@ else ()
     endif()
   endif()
 endif()
+
+
+
+target_compile_definitions(juce PUBLIC 
+  # enforced modules
+  JUCE_MODULE_AVAILABLE_juce_events=1
+  JUCE_MODULE_AVAILABLE_juce_audio_devices=1
+  JUCE_MODULE_AVAILABLE_juce_data_structures=1
+  JUCE_MODULE_AVAILABLE_juce_graphics=1
+
+  # juce_core flags:
+  JUCE_DISABLE_DLL_ALLOCATORS=1
+  JUCE_ALLOW_STATIC_NULL_VARIABLES=0
+
+  # juce_core / juce_event flags:
+  JUCE_STANDALONE_APPLICATION=1
+
+  # juce_gui_basic flags:
+  JUCE_WINDOWS_ALT_KEY_TRIGGERS_MENU=1
+  JUCE_MODAL_LOOPS_PERMITTED=1
+
+  # juce_gui_extra flags:
+  JUCE_WEB_BROWSER=0
+  JUCE_ENABLE_LIVE_CONSTANT_EDITOR=0
+)
+
 
 smode_install_target(juce EXPORT)
 
