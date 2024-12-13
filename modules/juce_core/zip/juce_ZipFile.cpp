@@ -47,7 +47,7 @@ inline uint32 readUnalignedLittleEndianInt (const void* buffer)
     return ByteOrder::littleEndianInt (&data);
 }
 
-#ifdef JUCE_WIN32 // SMODE for https://github.com/dlrd/Smode-Issues/issues/5336
+#ifdef JUCE_WINDOWS // SMODE for https://github.com/dlrd/Smode-Issues/issues/5336
 
 static std::wstring codePage437ToWideString(const char* filename, int fnlen)
 {
@@ -60,7 +60,7 @@ static std::wstring codePage437ToWideString(const char* filename, int fnlen)
   }
   return ret;
 }
-#endif // JUCE_WIN32
+#endif // JUCE_WINDOWS
 
 struct ZipFile::ZipEntryHolder
 {
