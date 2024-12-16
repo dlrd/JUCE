@@ -1,5 +1,5 @@
-commit 07828eb87d5242016b46e69f9ad6aca7878349f6 (HEAD -> develop, origin/develop)
-Author: Tom Poole <thomas.poole@roli.com>
-Date:   Mon Apr 15 15:05:29 2019 +0100
+commit 4f474d97f49b2fe8cd605b0e88e3a079673f6a9d (origin/develop, develop)
+Author: reuk <reuk@users.noreply.github.com>
+Date:   Thu Dec 12 12:58:54 2024 +0000
 
-    AAX:  Fixed a potential race condition when suspending a plug-in
+    FileChooser: Fix double-delete of UTType instances

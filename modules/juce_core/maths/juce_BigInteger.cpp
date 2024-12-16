@@ -1308,6 +1308,7 @@ uint32 readLittleEndianBitsInBuffer (const void* buffer, uint32 startBit, uint32
     return result;
 }
 
+
 //==============================================================================
 //==============================================================================
 #if JUCE_UNIT_TESTS
@@ -1315,7 +1316,9 @@ uint32 readLittleEndianBitsInBuffer (const void* buffer, uint32 startBit, uint32
 class BigIntegerTests final : public UnitTest
 {
 public:
-    BigIntegerTests() : UnitTest ("BigInteger", "Maths") {}
+    BigIntegerTests()
+        : UnitTest ("BigInteger", UnitTestCategories::maths)
+    {}
 
     static BigInteger getBigRandom (Random& r)
     {
