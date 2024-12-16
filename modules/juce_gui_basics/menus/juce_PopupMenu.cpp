@@ -1444,7 +1444,7 @@ private:
         ItemComponent* itemUnderMouse = dynamic_cast<ItemComponent*> (c);
         if (itemUnderMouse == nullptr && c != nullptr)
             itemUnderMouse = c->findParentComponentOfClass<ItemComponent>();
-        PopupMenu::CustomComponent* customComponent = itemUnderMouse ? itemUnderMouse->item.customComponent : nullptr;
+        auto customComponent = itemUnderMouse ? itemUnderMouse->item.customComponent : nullptr;
         if (customComponent && !customComponent->shouldShowSubMenu() && window.activeSubMenu)
             window.activeSubMenu->hide (nullptr, true);
         // --
