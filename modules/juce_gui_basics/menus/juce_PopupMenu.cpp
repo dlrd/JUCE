@@ -1966,7 +1966,7 @@ void PopupMenu::addCustomItem (int itemResultID,
     // the meaning of the item, or the contents of the submenu, as appropriate.
     // If you don't want this menu item to be press-able directly, pass "false" to the
     // constructor of the CustomComponent.
-    jassert (! (HelperClasses::ItemComponent::isAccessibilityHandlerRequired (i) && itemTitle.isEmpty()));
+    // SMODE Comment this to allow Custom Component without Label (colorlabel): jassert (! (HelperClasses::ItemComponent::isAccessibilityHandlerRequired (i) && itemTitle.isEmpty()));
 
     addItem (std::move (i));
 }
