@@ -666,7 +666,8 @@ StreamingSocket* StreamingSocket::waitForNextConnection() const
 
         if (newSocket >= 0 && connected)
             return new StreamingSocket (inet_ntoa (((struct sockaddr_in*) &address)->sin_addr),
-                                        portNumber, newSocket, options);
+              /*portNumber SMODE TECH destination port is the received one, for dlrd/Smode-Issues#6009 */
+              ntohs(((struct sockaddr_in*)&address)->sin_port), newSocket, options);
     }
 
     return nullptr;
