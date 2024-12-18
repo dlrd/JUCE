@@ -107,7 +107,7 @@ public:
         on drawing with - this constructor is here to help initialise objects before changing
         the font's settings later.
     */
-    [[deprecated ("Use the constructor that takes a FontOptions argument")]]
+    // SMODE TECH comment this to allo Array<Font> usage  [[deprecated ("Use the constructor that takes a FontOptions argument")]]
     Font();
 
     /** Creates a copy of another Font object. */
