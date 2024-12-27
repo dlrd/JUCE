@@ -356,6 +356,11 @@ bool InterprocessConnection::readNextMessage()
     uint32 messageHeader[2];
     auto bytes = readData (messageHeader, sizeof (messageHeader));
 
+    // SMODE first received message can lazy init magicMessageHeader if set to null at construction (for dlrd/Smode-Issues#5487)
+    if (!magicMessageHeader && bytes >= (int)sizeof(uint32))
+        magicMessageHeader = ByteOrder::swapIfBigEndian(messageHeader[0]);
+    // SMODE
+
     if (bytes == (int) sizeof (messageHeader)
          && ByteOrder::swapIfBigEndian (messageHeader[0]) == magicMessageHeader)
     {
@@ -449,10 +454,10 @@ void InterprocessConnection::runThread()
             {
                 if (!somethingToWrite) // SMODE
                 {
-                thread->wait (1);
-                continue;
+                    thread->wait (1);
+                    continue;
+                }
             }
-        }
             else 
               somethingToRead = true;
         }
