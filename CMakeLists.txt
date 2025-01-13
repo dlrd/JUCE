@@ -151,6 +151,8 @@ endif()
 
 
 target_compile_definitions(juce PUBLIC 
+  JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
+
   # enforced modules
   JUCE_MODULE_AVAILABLE_juce_events=1
   JUCE_MODULE_AVAILABLE_juce_audio_devices=1
@@ -160,9 +162,6 @@ target_compile_definitions(juce PUBLIC
   # juce_core flags:
   JUCE_DISABLE_DLL_ALLOCATORS=1
   JUCE_ALLOW_STATIC_NULL_VARIABLES=0
-
-  # juce_core / juce_event flags:
-  JUCE_STANDALONE_APPLICATION=1
 
   # juce_gui_basic flags:
   JUCE_WINDOWS_ALT_KEY_TRIGGERS_MENU=1
