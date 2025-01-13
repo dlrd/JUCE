@@ -2407,9 +2407,6 @@ private:
             {
                 type |= usesDropShadow ? WS_CAPTION : 0;
                 type |= titled ? (WS_OVERLAPPED | WS_CAPTION) : WS_POPUP;
-                type |= hasClose ? (WS_SYSMENU | WS_CAPTION) : 0;
-                type |= hasMin ? (WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0;
-                type |= hasMax ? (WS_MAXIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0;
                 type |= resizable ? WS_THICKFRAME : 0;
             }
             else
@@ -2419,6 +2416,11 @@ private:
                 // Unfortunately, this disables nice mouse handling for the caption area.
                 type |= WS_POPUP;
             }
+            // SMODE moved outside if / else section to let no os title bar based windows without drop shadow let Maximise does not overlap toolbar, but also toolbar click toggle minimize state
+            type |= hasClose ? (WS_SYSMENU | WS_CAPTION) : 0;
+            type |= hasMin ? (WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0;
+            type |= hasMax ? (WS_MAXIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0;
+            // end SMODE
 
             exstyle |= appearsOnTaskbar ? WS_EX_APPWINDOW : WS_EX_TOOLWINDOW;
         }
