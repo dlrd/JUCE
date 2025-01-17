@@ -3727,14 +3727,24 @@ private:
 
     Point<float> getPointFromLocalLParam (LPARAM lParam) noexcept
     {
-      if (!hasTitleBar() && isFullScreen()) // SMODE TECH, cf case WM_NCCALCSIZE: tricks
-        return getLocalPointFromScreenLParam(lParam);
+        if (!hasTitleBar() && isFullScreen()) // SMODE TECH, cf case WM_NCCALCSIZE: tricks
+        {
+            const auto monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
+            if (monitor)
+            {
+              MONITORINFOEX info{};
+              info.cbSize = sizeof(info);
+              GetMonitorInfo(monitor, &info);
+              lParam = MAKELONG(GET_X_LPARAM(lParam) + info.rcMonitor.left, GET_Y_LPARAM(lParam) + info.rcMonitor.top);
+            }
+            return getLocalPointFromScreenLParam(lParam);
+        }
 
         const auto p = D2DUtilities::toPoint (getPOINTFromLParam (lParam));
 
         if (! isPerMonitorDPIAwareWindow (hwnd))
             return p.toFloat();
-
+            
         // LPARAM is relative to this window's top-left but may be on a different monitor so we need to calculate the
         // physical screen position and then convert this to local logical coordinates
         auto r = getWindowScreenRect (hwnd);
