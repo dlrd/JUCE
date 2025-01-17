@@ -132,7 +132,7 @@ void TooltipWindow::displayTipInternal (Point<int> screenPos, const String& tip,
             addToDesktop (/*ComponentPeer::windowHasDropShadow /* SMODE remove tooltips drop shadow that can overlap output windows (dlrd/Smode-Issues#4363)
                             | */ComponentPeer::windowIsTemporary
                           | ComponentPeer::windowIgnoresKeyPresses
-                            /* SMODE: flag added in Juce 4.3.0 create invisible tooltips issues | ComponentPeer::windowIgnoresMouseClicks*/);
+                          | ComponentPeer::windowIgnoresMouseClicks);
         }
 
        #if JUCE_DEBUG
