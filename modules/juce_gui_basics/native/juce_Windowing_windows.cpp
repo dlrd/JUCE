@@ -2413,13 +2413,22 @@ private:
                 // Transparent windows need WS_POPUP and not WS_OVERLAPPED | WS_CAPTION, otherwise
                 // the top corners of the window will get rounded unconditionally.
                 // Unfortunately, this disables nice mouse handling for the caption area.
-                type |= WS_POPUP;
+                 type |= WS_POPUP;
             }
             // SMODE moved outside if / else section to let non-os based title bar based windows without drop to work on the following cases:
+            // WS_OVERLAPPED = WS_TILED = 0 = window has a title bar and a border
+            // WS_BORDER = The window has a thin-line border
+            // WS_DLGFRAME = The window has a border of a dialog boxes style and cannot have a title bar.
+            // WS_CAPTION = title bar (WS_BORDER + WS_DLGFRAME style).
+            // WS_POPUP = non WS_CHILD windows (GPTChat: special top-level window witout border or caption unless explicitly styled ie: Tooltips...)
+            // WS_SYSMENU = window has a window menu on its title bar. The WS_CAPTION style must also be specified.
+            // WS_THICKFRAME = The window has a sizing border. Same as the WS_SIZEBOX style
+            // WS_MAXIMIZEBOX = The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
+            // WS_MINIMIZEBOX	= The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
             type |= hasClose ? (WS_SYSMENU | WS_CAPTION) : 0;
             type |= hasMin ? (WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0; // let toolbar app click toggle minimize state
             type |= hasMax ? (WS_MAXIMIZEBOX | WS_CAPTION | WS_SYSMENU) : 0; // let Maximise does not overlap toolbar
-            type |= resizable ? WS_THICKFRAME : 0;                           // let windows became resizable with mouse and window key + directionnal keys
+            type |= resizable ? WS_THICKFRAME : 0; // let windows became resizable with mouse and window key + directionnal keys
             // end SMODE
 
             exstyle |= appearsOnTaskbar ? WS_EX_APPWINDOW : WS_EX_TOOLWINDOW;
@@ -3718,6 +3727,9 @@ private:
 
     Point<float> getPointFromLocalLParam (LPARAM lParam) noexcept
     {
+      if (!hasTitleBar() && isFullScreen()) // SMODE TECH, cf case WM_NCCALCSIZE: tricks
+        return getLocalPointFromScreenLParam(lParam);
+
         const auto p = D2DUtilities::toPoint (getPOINTFromLParam (lParam));
 
         if (! isPerMonitorDPIAwareWindow (hwnd))
