@@ -173,6 +173,8 @@ target_compile_definitions(juce PUBLIC
 )
 
 
-smode_install_target(juce EXPORT)
+if (NOT SMODE_OPTION_STATIC_LIBS)
+  smode_install_target(juce EXPORT)
 
-oil_binary_sign(juce)
+  oil_binary_sign(juce)
+endif ()
