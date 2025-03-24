@@ -32,28 +32,14 @@
   ==============================================================================
 */
 
-namespace juce
+namespace juce::detail
 {
 
-class Direct2DImageContext : public Direct2DGraphicsContext
+struct UnicodeHelpers
 {
-public:
-    Direct2DImageContext (ComSmartPtr<ID2D1DeviceContext1>,
-                          ComSmartPtr<ID2D1Bitmap1>,
-                          const RectangleList<int>&);
+    UnicodeHelpers() = delete;
 
-    ~Direct2DImageContext() override;
-
-    ComSmartPtr<ID2D1DeviceContext1> getDeviceContext() const;
-
-private:
-    struct ImagePimpl;
-    std::unique_ptr<ImagePimpl> pimpl;
-
-    Pimpl* getPimpl() const noexcept override;
-    void clearTargetBuffer() override;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Direct2DImageContext)
+    static std::vector<int> getLineBreaks (const String& data);
 };
 
-} // namespace juce
+} // namespace juce::detail

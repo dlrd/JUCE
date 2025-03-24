@@ -1524,7 +1524,6 @@ public:
 
     std::optional<BorderSize<int>> getCustomBorderSize() const
     {
-        // SMODE TECH fullscreen check added here https://forum.juce.com/t/juce-8-bug-and-fix-no-title-resizable-main-window-issues/64934/7 for /dlrd/Smode-Issues#5381
         if (hasTitleBar() || (styleFlags & windowIsTemporary) != 0 || isFullScreen())
             return {};
 
@@ -4976,7 +4975,7 @@ private:
                     peer.handlePaint (*context);
                 }
 
-                auto* image = static_cast<WindowsBitmapImage*> (offscreenImage.getPixelData());
+                auto* image = static_cast<WindowsBitmapImage*> (offscreenImage.getPixelData().get());
 
                 if (perPixelTransparent)
                 {
@@ -5276,7 +5275,7 @@ private:
 
         Image getImage() const
         {
-            return Image { new Direct2DPixelData { deviceContext, bitmap } };
+            return Image { new Direct2DPixelData { adapter->direct2DDevice, bitmap } };
         }
 
         ComSmartPtr<ID2D1Bitmap1> getBitmap() const
