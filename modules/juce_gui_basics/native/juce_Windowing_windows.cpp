@@ -2420,8 +2420,9 @@ private:
                 // Transparent windows need WS_POPUP and not WS_OVERLAPPED | WS_CAPTION, otherwise
                 // the top corners of the window will get rounded unconditionally.
                 // Unfortunately, this disables nice mouse handling for the caption area.
-                type |= WS_POPUP;
+                 type |= WS_POPUP;
             }
+
 
             exstyle |= appearsOnTaskbar ? WS_EX_APPWINDOW : WS_EX_TOOLWINDOW;
         }
@@ -3723,7 +3724,7 @@ private:
 
         if (! isPerMonitorDPIAwareWindow (hwnd))
             return p.toFloat();
-
+            
         // LPARAM is relative to this window's top-left but may be on a different monitor so we need to calculate the
         // physical screen position and then convert this to local logical coordinates
         auto r = getWindowScreenRect (hwnd);

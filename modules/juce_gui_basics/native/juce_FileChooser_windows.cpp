@@ -243,10 +243,37 @@ private:
         if (extension.isNotEmpty() && FAILED (dialog.SetDefaultExtension (extension.toWideCharPointer())))
             return false;
 
-        const COMDLG_FILTERSPEC spec[] { { filtersString.toWideCharPointer(), filtersString.toWideCharPointer() } };
-
-        if (! selectsDirectories && FAILED (dialog.SetFileTypes (numElementsInArray (spec), spec)))
+        if (filtersString.contains("|")) // SMODE TECH support multiple file type combo box for  dlrd/Smode-Issues#6772
+        {
+          StringArray splitFilters;
+          splitFilters.addTokens(filtersString, "|", "");
+          if (splitFilters.size() % 2 != 0)
+          {
+            jassertfalse; // call Smode Tech
             return false;
+          }
+
+
+          COMDLG_FILTERSPEC* spec = new COMDLG_FILTERSPEC[splitFilters.size() / 2];
+          for (int i = 0; i < splitFilters.size(); i += 2)
+            spec[i / 2] = { splitFilters[i].toWideCharPointer(), splitFilters[i + 1].toWideCharPointer() };
+          if (!selectsDirectories && FAILED(dialog.SetFileTypes(splitFilters.size() / 2, spec)))
+          {
+            delete [] spec;
+            return false;
+          }
+          delete [] spec;
+
+        }
+        else
+        {
+          const COMDLG_FILTERSPEC spec[]{ { filtersString.toWideCharPointer(), filtersString.toWideCharPointer() } };
+
+          if (!selectsDirectories && FAILED(dialog.SetFileTypes(numElementsInArray(spec), spec)))
+            return false;
+
+        }
+
 
         struct Events final : public ComBaseClassHelper<IFileDialogEvents>
         {

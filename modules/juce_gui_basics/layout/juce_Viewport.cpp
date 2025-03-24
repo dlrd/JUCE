@@ -587,7 +587,7 @@ bool Viewport::useMouseWheelMoveIfNeeded (const MouseEvent& e, const MouseWheelD
                 pos.x -= deltaX;
                 pos.y -= deltaY;
             }
-            else if (canScrollHorz && (deltaX != 0 || e.mods.isShiftDown() || ! canScrollVert))
+            else if (canScrollHorz && (deltaX != 0 || e.mods.isShiftDown() /* || SMODE do not like hscrool without shift ! canScrollVert */))
             {
                 pos.x -= deltaX != 0 ? deltaX : deltaY;
             }

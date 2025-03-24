@@ -310,7 +310,12 @@ public:
                     sendMouseDrag (*current, newPointerState.withPositionOffset (unboundedMouseOffset), time);
 
                     if (isUnboundedMouseModeOn)
-                        handleUnboundedDrag (*current);
+                    {
+                        if (getComponentUnderMouse() == nullptr)
+                          jassertfalse; // SMODE fix
+                        else
+                          handleUnboundedDrag(*current);
+                    }
                 }
                 else
                 {

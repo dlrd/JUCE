@@ -98,12 +98,27 @@ namespace
             return input.readFloatBigEndian();
         }
 
+        // SMODE (dlrd/Smode-Issues#4442)
+        static String readStringWithCodePageDetection(InputStream& inputStream)
+        {
+          MemoryOutputStream buffer;
+
+          for (;;)
+          {
+            auto c = inputStream.readByte();
+            buffer.writeByte(c);
+
+            if (c == 0)
+              return buffer.toString(); // not toUTF8 as InputStream::readString()
+          }
+        }
+
         String readString()
         {
             checkBytesAvailable (4, "OSC input stream exhausted while reading string");
 
             auto posBegin = (size_t) getPosition();
-            auto s = input.readString();
+            auto s = readStringWithCodePageDetection(input); // SMODE (dlrd/Smode-Issues#4442)
             auto posEnd = (size_t) getPosition();
 
             if (static_cast<const char*> (getData()) [posEnd - 1] != '\0')
@@ -469,13 +484,16 @@ private:
         while (! threadShouldExit())
         {
             jassert (socket != nullptr);
-            auto ready = socket->waitUntilReady (true, 100);
+            auto ready = socket->waitUntilReady (true, /* SMODE 100 */ 0);
 
             if (ready < 0 || threadShouldExit())
                 return;
 
             if (ready == 0)
-                continue;
+            { 
+              realtimeListeners.call([&](OSCReceiver::Listener<OSCReceiver::RealtimeCallback>& l) { l.oscThreadIdle(); }); // SMODE call idle callback 
+              continue;
+            }
 
             auto bytesRead = (size_t) socket->read (oscBuffer.getData(), bufferSize, false);
 

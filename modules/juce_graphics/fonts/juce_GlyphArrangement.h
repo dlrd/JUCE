@@ -56,6 +56,8 @@ public:
     PositionedGlyph (const Font& font, juce_wchar character, int glyphNumber,
                      float anchorX, float baselineY, float width, bool isWhitespace);
 
+    /** SmodeTech: required for layouting code customization */
+    int getGlyphIndex() const noexcept          { return glyph; }
     /** Returns the character the glyph represents. */
     juce_wchar getCharacter() const noexcept    { return character; }
     /** Checks whether the glyph is actually empty. */

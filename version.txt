@@ -1,0 +1,5 @@
+commit cd981c1b1a95e541db0c955a1ab3367b6a64aa7e
+Author: reuk <reuk@users.noreply.github.com>
+Date:   Mon Mar 17 23:43:08 2025 +0000
+
+    FileChooser: Guard against use-after-free
