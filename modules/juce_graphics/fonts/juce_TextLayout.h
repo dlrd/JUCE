@@ -182,7 +182,6 @@ public:
 
         Font font { FontOptions{} };    /**< The run's font. */
         Colour colour { 0xff000000 };   /**< The run's colour. */
-        String link;                    /**< The run's link, added by SMODE. */
         Array<Glyph> glyphs;            /**< The glyphs in this run. */
         Range<int> stringRange;         /**< The character range that this run represents in the
                                              original string that was used to create it. */
