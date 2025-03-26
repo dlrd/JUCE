@@ -234,9 +234,6 @@ public:
     /** Returns the maximum height of the content. */
     float getHeight() const noexcept    { return height; }
 
-    /** SMODE Returns the justification of the content. */
-    Justification getJustification() const noexcept { return justification; }
-
     /** Returns the number of lines in the layout. */
     int getNumLines() const noexcept    { return lines.size(); }
 
