@@ -751,20 +751,18 @@ public:
    #endif
 
     /** Runs the menu asynchronously. */
-    void showMenuAsync (const Options& options);
+    Component* /* SMODE TECH */ showMenuAsync(const Options& options);
 
     /** Runs the menu asynchronously, with a user-provided callback that will receive the result. */
-    void showMenuAsync (const Options& options,
+    Component* /* SMODE TECH */showMenuAsync (const Options& options,
                         ModalComponentManager::Callback* callback);
 
     /** Runs the menu asynchronously, with a user-provided callback that will receive the result. */
-    void showMenuAsync (const Options& options,
+    Component* /* SMODE TECH */showMenuAsync (const Options& options,
                         std::function<void (int)> callback);
 
-    // SMODE
-    Component* showMenuAsyncAndGetComponent(const Options& options,
-                        ModalComponentManager::Callback* callback) const;
-    static int menuAsyncCurrentIdUnderMouse(Component* component);
+  
+    static const Item* getItemUnderMouseFromMenuComponent(Component* menuComponent);  // SMODE
 
     //==============================================================================
     /** Closes any menus that are currently open.
@@ -1072,11 +1070,6 @@ public:
     int drawPopupMenuItem (Graphics&, int, int, bool, bool, bool, bool, bool, const String&, const String&, Image*, const Colour*) { return 0; }
    #endif
 
-    // SMODE
-    int showWithOptionalCallbackAndGetComponent(const Options&, ModalComponentManager::Callback*, bool, Component**) const;
-    Component* getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback,
-      const bool canBeModal);
-
 private:
     //==============================================================================
     JUCE_PUBLIC_IN_DLL_BUILD (struct HelperClasses)
@@ -1088,7 +1081,7 @@ private:
     WeakReference<LookAndFeel> lookAndFeel;
 
     Component* createWindow (const Options&, ApplicationCommandManager**) const;
-    int showWithOptionalCallback (const Options&, ModalComponentManager::Callback*, bool);
+    int showWithOptionalCallback (const Options&, ModalComponentManager::Callback*, bool, Component** = nullptr /** SMODE TECH */);
 
     static void setItem (CustomComponent&, const Item*);
 

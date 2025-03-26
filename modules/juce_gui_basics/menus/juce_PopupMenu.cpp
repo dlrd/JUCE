@@ -1196,22 +1196,7 @@ struct MenuWindow final : public Component
         repaint();
     }
 
-    // Smode Tech
-    size_t getNumColumnSeparators() const
-    {
-      size_t res = 0;
-      for (int i = 0; i < items.size(); ++i)
-        if (items[i]->item.shouldBreakAfter)
-          ++res;
-      return res;
-    }
-
     int updateYPositions()
-    {
-        return updateYPositions(getNumColumnSeparators() > 0);
-    }
-
-    int updateYPositions(bool hasColumnSeparators /* Smode Tech*/)
     {
         const auto separatorWidth = getLookAndFeel().getPopupMenuColumnSeparatorWidthWithOptions (options);
         const auto initialY = getLookAndFeel().getPopupMenuBorderSizeWithOptions (options)
@@ -2236,13 +2221,16 @@ struct PopupMenuCompletionCallback final : public ModalComponentManager::Callbac
 
 int PopupMenu::showWithOptionalCallback (const Options& options,
                                          ModalComponentManager::Callback* userCallback,
-                                         [[maybe_unused]] bool canBeModal)
+                                         [[maybe_unused]] bool canBeModal, Component** createdComponent /**  = nullptr SMODE TECH */)
 {
     std::unique_ptr<ModalComponentManager::Callback> userCallbackDeleter (userCallback);
     std::unique_ptr<PopupMenuCompletionCallback> callback (new PopupMenuCompletionCallback());
 
     if (auto* window = createWindow (options, &(callback->managerOfChosenCommand)))
     {
+        if (createdComponent)
+           *createdComponent = window; // SMODE TECH
+
         callback->component.reset (window);
 
         PopupMenuSettings::menuWasHiddenBecauseOfAppChange = false;
@@ -2261,6 +2249,8 @@ int PopupMenu::showWithOptionalCallback (const Options& options,
         jassert (! (userCallback == nullptr && canBeModal));
        #endif
     }
+    else if (createdComponent)
+        *createdComponent = nullptr; // SMODE TECH
 
     return 0;
 }
@@ -2273,86 +2263,40 @@ int PopupMenu::showMenu (const Options& options)
 }
 #endif
 
-void PopupMenu::showMenuAsync (const Options& options)
+Component* PopupMenu::showMenuAsync (const Options& options)
 {
-    showWithOptionalCallback (options, nullptr, false);
+    Component* createdComponent = nullptr; // SMODE TECH
+    showWithOptionalCallback (options, nullptr, false, &createdComponent);
+    return createdComponent;
 }
 
-void PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Callback* userCallback)
-{
-   #if ! JUCE_MODAL_LOOPS_PERMITTED
-    jassert (userCallback != nullptr);
-   #endif
-
-    showWithOptionalCallback (options, userCallback, false);
-}
-
-void PopupMenu::showMenuAsync (const Options& options, std::function<void (int)> userCallback)
-{
-    showWithOptionalCallback (options, ModalCallbackFunction::create (userCallback), false);
-}
-
-// SMODE
-Component* PopupMenu::showMenuAsyncAndGetComponent (const Options& options, ModalComponentManager::Callback* userCallback) const
+Component* PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Callback* userCallback)
 {
    #if ! JUCE_MODAL_LOOPS_PERMITTED
     jassert (userCallback != nullptr);
    #endif
-
-    Component* res = nullptr;
-
-    showWithOptionalCallbackAndGetComponent (options, userCallback, false, &res);
-    return res;
+    Component* createdComponent = nullptr; // SMODE TECH
+    showWithOptionalCallback (options, userCallback, false, &createdComponent);
+    return createdComponent;
 }
 
-// SMODE
-Component* PopupMenu::getProcessedComponent(const Options& options, ModalComponentManager::Callback* const userCallback, const bool canBeModal)
-  {
-    if (Component* window = createWindow(options, nullptr))
-    {
-        window->setVisible(true); // (must be called before enterModalState on Windows to avoid DropShadower confusion)
-        return window;
-    }
-    return nullptr;
-}
-// SMODE
-int PopupMenu::showWithOptionalCallbackAndGetComponent (const Options& options, ModalComponentManager::Callback* const userCallback,
-                                                           const bool canBeModal, Component** component) const
+Component* PopupMenu::showMenuAsync (const Options& options, std::function<void (int)> userCallback)
 {
-    std::unique_ptr<ModalComponentManager::Callback> userCallbackDeleter (userCallback);
-    std::unique_ptr<PopupMenuCompletionCallback> callback (new PopupMenuCompletionCallback());
-    if (Component* window = createWindow (options, &(callback->managerOfChosenCommand)))
-    {
-        *component = window;
-        callback->component.reset(window);
-        window->setVisible (true); // (must be called before enterModalState on Windows to avoid DropShadower confusion)
-        window->enterModalState (false, userCallbackDeleter.release());
-        ModalComponentManager::getInstance()->attachCallback (window, callback.release());
-        window->toFront (false);  // need to do this after making it modal, or it could
-                                  // be stuck behind other comps that are already modal..
-       #if JUCE_MODAL_LOOPS_PERMITTED
-        if (userCallback == nullptr && canBeModal)
-            return window->runModalLoop();
-       #else
-        jassert (! (userCallback == nullptr && canBeModal));
-       #endif
-    }
-    else
-      *component = nullptr;
-    return 0;
+    Component* createdComponent = nullptr; // SMODE TECH
+    showWithOptionalCallback (options, ModalCallbackFunction::create (userCallback), false, &createdComponent);
+    return createdComponent;
 }
-// SMODE
 
 // Smode Tech
-int PopupMenu::menuAsyncCurrentIdUnderMouse(Component* component)
+const juce::PopupMenu::Item* PopupMenu::getItemUnderMouseFromMenuComponent(Component* menuComponent)
 {
-  auto window = static_cast<HelperClasses::MenuWindow*>(component);
+  auto window = static_cast<const HelperClasses::MenuWindow*>(menuComponent);
   if (!window || !window->currentChild)
-    return 0;
+    return nullptr;
   while (window->activeSubMenu && window->activeSubMenu->currentChild)
     window = window->activeSubMenu.get();
   auto current = window->currentChild.getComponent();
-  return current ? current->item.itemID : 0;
+  return current ? &current->item : nullptr;
 }
 // ---
 
