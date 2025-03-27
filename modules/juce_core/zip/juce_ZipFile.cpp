@@ -77,7 +77,14 @@ struct ZipFile::ZipEntryHolder
         auto fileType = (entry.externalFileAttributes >> 28) & 0xf;
         entry.isSymbolicLink = (fileType == 0xA);
 
+#ifdef JUCE_WINDOWS // SMODE for https://github.com/dlrd/Smode-Issues/issues/5336
+        if (CharPointer_UTF8::isValidString(buffer + 46, fileNameLen))
+          entry.filename = String::fromUTF8(buffer + 46, fileNameLen);
+        else
+          entry.filename = codePage437ToWideString(buffer + 46, fileNameLen).c_str();
+#else   // JUCE_WINDOWS
         entry.filename = String::fromUTF8 (buffer + 46, fileNameLen);
+#endif // JUCE_WINDOWS
     }
 
     static Time parseFileTime (uint32 time, uint32 date) noexcept
