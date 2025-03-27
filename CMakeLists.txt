@@ -4,16 +4,6 @@
 # Started  : 04/04/2014 11:21            |                                     #
 #/-------------------------------------- . -----------------------------------\#
 
-OPTION(JUCE_MODULE_AVAILABLE_juce_opengl "build Juce OpenGL Module." OFF)
-if (JUCE_MODULE_AVAILABLE_juce_opengl)
-  FIND_PACKAGE(OpenGL REQUIRED)
-  SET(JUCE_OPENGL_SOURCES
-    modules/juce_opengl/juce_opengl.cpp
-    modules/juce_opengl/juce_opengl.h
-  )
-endif ()
-
-
 SET(JUCE_AUDIO_BASICS_SOURCES
   modules/juce_audio_basics/juce_audio_basics.cpp
   modules/juce_audio_basics/juce_audio_basics.h
@@ -89,17 +79,10 @@ SET(JUCE_SOURCES
   ${JUCE_GRAPHICS_SOURCES}
   ${JUCE_GUI_BASICS_SOURCES}
   ${JUCE_GUI_EXTRA_SOURCES}
-  ${JUCE_OPENGL_SOURCES}
   ${JUCE_OCS_SOURCES}
 )
 
 ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
-
-if (JUCE_MODULE_AVAILABLE_juce_opengl)
-  target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_opengl=1)
-  target_include_directories(juce PRIVATE ${OPENGL_INCLUDE_DIR})
-  target_link_libraries(juce PRIVATE ${OPENGL_LIBRARIES})
-endif ()
 
 if (JUCE_MODULE_AVAILABLE_juce_gui_basics)
   target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_gui_basics=1)
@@ -117,7 +100,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 if (WIN32)
-  target_link_libraries(juce PRIVATE kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet rpcrt4 ole32 advapi32 ws2_32 Version Imm32 Shlwapi)
+  target_link_libraries(juce PRIVATE kernel32 user32 shell32 gdi32 vfw32 comdlg32 winmm wininet ole32 advapi32 ws2_32 Version Imm32 Shlwapi)
 else ()
   if   (UNIX)
     if   (APPLE)
