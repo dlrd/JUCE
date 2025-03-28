@@ -1695,8 +1695,8 @@ public:
         const ScopedValueSetter<bool> scope (shouldIgnoreModalDismiss, true);
 
         if (shouldBeMinimised != isMinimised())
-            ShowWindow (hwnd, shouldBeMinimised ? SW_MINIMIZE : SW_RESTORE);
-    }
+          ShowWindow(hwnd, shouldBeMinimised ? SW_MINIMIZE : SW_RESTORE);
+        }
 
     bool isMinimised() const override
     {
@@ -3922,14 +3922,12 @@ private:
                 // so that the client area exactly fills the available space.
                 if (isFullScreen())
                 {
-                    const auto monitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONULL);
-
-                    if (monitor == nullptr)
+                    if (currentMonitor == nullptr)
                         return 0;
 
                     MONITORINFOEX info{};
-                    info.cbSize = sizeof (info);
-                    GetMonitorInfo (monitor, &info);
+                    info.cbSize = sizeof(info);
+                    GetMonitorInfo (currentMonitor, &info); // SMODE replace MonitorFromWindow that may fail when switching from minimized state by currentMonitor for (dlrd/Smode-Issues#6730)
 
                     const auto padX = info.rcMonitor.left - param->left;
                     const auto padY = info.rcMonitor.top - param->top;
@@ -4262,7 +4260,7 @@ private:
                         if (isMinimised())
                             setMinimised (false);
                         else if (isFullScreen())
-                            setFullScreen (false);
+                        setFullScreen(false);
 
                         return 0;
                     }
