@@ -122,6 +122,10 @@ public:
     */
     static void releaseUnusedImages();
 
+    // SMODE
+    static void releaseImages(juce::Image* image = nullptr);
+    // -
+
 private:
     //==============================================================================
     struct Pimpl;

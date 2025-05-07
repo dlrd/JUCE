@@ -1140,12 +1140,12 @@ bool Component::reallyContains (Point<float> point, bool returnTrueIfWithinAChil
     return (compAtPosition == this) || (returnTrueIfWithinAChild && isParentOf (compAtPosition));
 }
 
-Component* Component::getComponentAt (Point<int> position)
+Component* Component::getComponentAt (Point<int> position, /* SMODE */Component* excludedChild /*= nullptr*/)
 {
-    return getComponentAt (position.toFloat());
+    return getComponentAt (position.toFloat(), excludedChild);
 }
 
-Component* Component::getComponentAt (Point<float> position)
+Component* Component::getComponentAt (Point<float> position, /* SMODE */Component* excludedChild /*= nullptr*/)
 {
     if (flags.visibleFlag && detail::ComponentHelpers::hitTest (*this, position))
     {
@@ -1155,7 +1155,7 @@ Component* Component::getComponentAt (Point<float> position)
 
             child = child->getComponentAt (detail::ComponentHelpers::convertFromParentSpace (*child, position));
 
-            if (child != nullptr)
+            if (child != nullptr && child != excludedChild /* condition on excludedChild added by SMODE */)
                 return child;
         }
 
@@ -1165,9 +1165,9 @@ Component* Component::getComponentAt (Point<float> position)
     return nullptr;
 }
 
-Component* Component::getComponentAt (int x, int y)
+Component* Component::getComponentAt (int x, int y, /* SMODE */Component* excludedChild /*= nullptr*/)
 {
-    return getComponentAt (Point<int> { x, y });
+    return getComponentAt (Point<int> { x, y }, excludedChild);
 }
 
 //==============================================================================
@@ -1672,7 +1672,7 @@ void Component::paint (Graphics&)
 {
     // if your component is marked as opaque, you must implement a paint
     // method and ensure that its entire area is completely painted.
-    jassert (getBounds().isEmpty() || ! isOpaque());
+    // SMODE jassert (getBounds().isEmpty() || ! isOpaque());
 }
 
 void Component::paintOverChildren (Graphics&)

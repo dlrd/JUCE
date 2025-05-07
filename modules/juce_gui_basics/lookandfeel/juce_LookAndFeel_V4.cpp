@@ -860,6 +860,7 @@ void LookAndFeel_V4::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
             f2.setHeight (f2.getHeight() * 0.75f);
             f2.setHorizontalScale (0.95f);
             g.setFont (f2);
+            g.setColour(textColour.withAlpha(.5f)); // SMODE
 
             g.drawText (shortcutKeyText, r, Justification::centredRight, true);
         }

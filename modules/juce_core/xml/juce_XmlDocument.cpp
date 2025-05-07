@@ -525,7 +525,18 @@ void XmlDocument::readChildElements (XmlElement& parent)
                 auto closeTag = input.indexOf ((juce_wchar) '>');
 
                 if (closeTag >= 0)
+                {
+                    // Smode Tech dlrd/Smode-Issue#5715
+                    const juce::String closeTagName = String(input + 2, input + closeTag).trim();
+                    if (parent.getTagName() != closeTagName)
+                    {
+                      setLastError("unmatched tag " + closeTagName.quoted() + " expected: " + parent.getTagName().quoted(), false);
+                      break;
+                    }
+
                     input += closeTag + 1;
+
+                }
 
                 break;
             }

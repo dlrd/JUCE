@@ -68,6 +68,13 @@ void ComboBox::setEditableText (const bool isEditable)
     }
 }
 
+// SMODE
+void ComboBox::setFont (const Font& font)
+{
+  label->setFont(font);
+}
+// SMODE
+
 bool ComboBox::isTextEditable() const noexcept
 {
     return label->isEditable();
@@ -90,7 +97,7 @@ void ComboBox::setTooltip (const String& newTooltip)
 }
 
 //==============================================================================
-void ComboBox::addItem (const String& newItemText, int newItemId)
+void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMODE add annotation*/ const String& annotation /* = String() */, /* SMODE add colour */Colour colour /* = Colour(0x0)*/ )
 {
     // you can't add empty strings to the list..
     jassert (newItemText.isNotEmpty());
@@ -102,7 +109,9 @@ void ComboBox::addItem (const String& newItemText, int newItemId)
     jassert (getItemForId (newItemId) == nullptr);
 
     if (newItemText.isNotEmpty() && newItemId != 0)
-        currentMenu.addItem (newItemId, newItemText, true, false);
+    {
+        currentMenu.addItem (newItemId, newItemText, true, false, annotation /* // SMODE forward annotation */, colour);
+    }
 }
 
 void ComboBox::addItemList (const StringArray& itemsToAdd, int firstItemID)
@@ -115,6 +124,13 @@ void ComboBox::addSeparator()
 {
     currentMenu.addSeparator();
 }
+
+// SmodeTech
+void ComboBox::addColumnBreak()
+{
+  currentMenu.addColumnBreak();
+}
+// ---
 
 void ComboBox::addSectionHeading (const String& headingName)
 {
@@ -210,6 +226,17 @@ String ComboBox::getItemText (const int index) const
 
     return {};
 }
+
+
+// SMODE 
+String ComboBox::getItemAnnotation(const int index) const
+{
+  if (const PopupMenu::Item* const item = getItemForIndex (index))
+    return item->shortcutKeyDescription;
+
+  return String();
+}
+// SMODE 
 
 int ComboBox::getItemId (const int index) const noexcept
 {

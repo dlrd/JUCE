@@ -1695,8 +1695,8 @@ public:
         const ScopedValueSetter<bool> scope (shouldIgnoreModalDismiss, true);
 
         if (shouldBeMinimised != isMinimised())
-            ShowWindow (hwnd, shouldBeMinimised ? SW_MINIMIZE : SW_RESTORE);
-    }
+          ShowWindow(hwnd, shouldBeMinimised ? SW_MINIMIZE : SW_RESTORE);
+        }
 
     bool isMinimised() const override
     {
@@ -2420,8 +2420,9 @@ private:
                 // Transparent windows need WS_POPUP and not WS_OVERLAPPED | WS_CAPTION, otherwise
                 // the top corners of the window will get rounded unconditionally.
                 // Unfortunately, this disables nice mouse handling for the caption area.
-                type |= WS_POPUP;
+                 type |= WS_POPUP;
             }
+
 
             exstyle |= appearsOnTaskbar ? WS_EX_APPWINDOW : WS_EX_TOOLWINDOW;
         }
@@ -3723,7 +3724,7 @@ private:
 
         if (! isPerMonitorDPIAwareWindow (hwnd))
             return p.toFloat();
-
+            
         // LPARAM is relative to this window's top-left but may be on a different monitor so we need to calculate the
         // physical screen position and then convert this to local logical coordinates
         auto r = getWindowScreenRect (hwnd);
@@ -3921,14 +3922,12 @@ private:
                 // so that the client area exactly fills the available space.
                 if (isFullScreen())
                 {
-                    const auto monitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONULL);
-
-                    if (monitor == nullptr)
+                    if (currentMonitor == nullptr)
                         return 0;
 
                     MONITORINFOEX info{};
-                    info.cbSize = sizeof (info);
-                    GetMonitorInfo (monitor, &info);
+                    info.cbSize = sizeof(info);
+                    GetMonitorInfo (currentMonitor, &info); // SMODE replace MonitorFromWindow that may fail when switching from minimized state by currentMonitor for (dlrd/Smode-Issues#6730)
 
                     const auto padX = info.rcMonitor.left - param->left;
                     const auto padY = info.rcMonitor.top - param->top;
@@ -4261,7 +4260,7 @@ private:
                         if (isMinimised())
                             setMinimised (false);
                         else if (isFullScreen())
-                            setFullScreen (false);
+                        setFullScreen(false);
 
                         return 0;
                     }

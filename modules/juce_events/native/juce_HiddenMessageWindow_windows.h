@@ -117,6 +117,11 @@ public:
         startTimer (500);
     }
 
+    ~DeviceChangeDetector() override
+    {
+        stopTimer(); // SMODE TECH to allow AudioDeviceType quick shutdown before timerCallback call
+    }
+
 private:
     HiddenMessageWindow messageWindow;
     std::function<void()> onChange;

@@ -1,0 +1,6 @@
+SHA-1: 626a4ea47527f34bc4e6c73fd3c11304149a1437
+
+* VST2 Client: Fix issue where compatible VST3 IDs were misreported
+
+`convertVST2PluginId` returns `array<byte, 16>` rather than `String`, so
+it's incorrect to interpret the result as a hex string.

@@ -305,7 +305,7 @@ private:
 
     int indexToColumn (int index, const String& line, int tabSpaces) const noexcept
     {
-        jassert (index <= line.length());
+        // SMODE: comment this: jassert (index <= line.length());
 
         auto t = line.getCharPointer();
         int col = 0;
@@ -1657,7 +1657,7 @@ int CodeEditorComponent::indexToColumn (int lineNum, int index) const noexcept
     {
         if (t.isEmpty())
         {
-            jassertfalse;
+            // SMODE: comment assertions: jassertfalse;
             break;
         }
 
