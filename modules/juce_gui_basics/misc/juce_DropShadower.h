@@ -64,6 +64,10 @@ public:
     /** Attaches the DropShadower to the component you want to shadow. */
     void setOwner (Component* componentToFollow);
 
+    // added by SmodeTech:
+    void setShadowAvoidRegion(const std::optional<Rectangle<int>>& region);
+    // --
+
 private:
     //==============================================================================
     void componentMovedOrResized (Component&, bool, bool) override;
@@ -82,6 +86,7 @@ private:
     DropShadow shadow;
     bool reentrant = false;
     WeakReference<Component> lastParentComp;
+    std::optional<Rectangle<int>> shadowAvoidRegion; // added by SmodeTech
 
     class ParentVisibilityChangedListener;
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;

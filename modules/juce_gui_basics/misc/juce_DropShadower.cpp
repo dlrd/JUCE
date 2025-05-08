@@ -306,6 +306,12 @@ void DropShadower::setOwner (Component* componentToFollow)
     }
 }
 
+void DropShadower::setShadowAvoidRegion(const std::optional<Rectangle<int>>& region)
+{
+  shadowAvoidRegion = region;
+  updateShadows();
+}
+
 void DropShadower::updateParent()
 {
     if (Component* p = lastParentComp)
@@ -349,6 +355,46 @@ void DropShadower::componentVisibilityChanged (Component& c)
         updateShadows();
 }
 
+// By Smode Tech:
+static juce::Rectangle<int> getRemainingBounds(const juce::Rectangle<int>& shadow, const juce::Rectangle<int>& avoid, bool isVertical)
+{
+  if (!shadow.intersects(avoid))
+    return shadow; // no intersection: shadow bounds fully remain
+
+  const juce::Rectangle<int> intersection = shadow.getIntersection(avoid);
+  if (intersection == shadow)
+    return juce::Rectangle<int>(); // shadow bounds are fully contained in the avoid region: nothing remains
+
+  const int a1 = isVertical ? avoid.getY() : avoid.getX();
+  const int s1 = isVertical ? shadow.getY() : shadow.getX();
+  const int a2 = isVertical ? avoid.getBottom() : avoid.getRight();
+  const int s2 = isVertical ? shadow.getBottom() : shadow.getRight();
+
+  int res1 = s1, res2 = s2;
+
+  if (a1 <= s1 && a2 >= s2)
+    return juce::Rectangle<int>(); // shadow bounds are fully contained in the avoid region: nothing remains
+  if (a1 >= s1 && a2 <= s2)
+  {
+    if (abs(a1 - s1) > abs(a2 - s2))
+      res2 = a1; // keep first part
+    else
+      res1 = a2; // keep second part
+  }
+  else if (a1 <= s2)
+    res2 = a1;
+  else if (a2 >= s1)
+    res1 = a2;
+  else
+    return juce::Rectangle<int>(); // not expected to happen
+
+  if (isVertical)
+    return juce::Rectangle<int>(shadow.getX(), res1, shadow.getWidth(), res2 - res1);
+  else
+    return juce::Rectangle<int>(res1, shadow.getY(), res2 - res1, shadow.getHeight());
+}
+// End of Smode Tech
+
 void DropShadower::updateShadows()
 {
     if (reentrant)
@@ -367,9 +413,9 @@ void DropShadower::updateShadows()
 
         const int shadowEdge = jmax (shadow.offset.x, shadow.offset.y) + shadow.radius;
         const int x = owner->getX();
-        const int y = owner->getY() - shadowEdge;
+        const int y = owner->getY();
         const int w = owner->getWidth();
-        const int h = owner->getHeight() + shadowEdge + shadowEdge;
+        const int h = owner->getHeight();
 
         for (int i = 4; --i >= 0;)
         {
@@ -384,14 +430,29 @@ void DropShadower::updateShadows()
                 if (sw == nullptr)
                     return;
 
+                juce::Rectangle<int> swBounds;
                 switch (i)
                 {
-                    case 0: sw->setBounds (x - shadowEdge, y, shadowEdge, h); break;
-                    case 1: sw->setBounds (x + w, y, shadowEdge, h); break;
-                    case 2: sw->setBounds (x, y, w, shadowEdge); break;
-                    case 3: sw->setBounds (x, owner->getBottom(), w, shadowEdge); break;
+                    case 0: swBounds = juce::Rectangle<int> (x - shadowEdge, y - shadowEdge, shadowEdge, h + 2 * shadowEdge); break;
+                    case 1: swBounds = juce::Rectangle<int> (x + w, y - shadowEdge, shadowEdge, h + 2 * shadowEdge); break;
+                    case 2: swBounds = juce::Rectangle<int> (x, y - shadowEdge, w, shadowEdge); break;
+                    case 3: swBounds = juce::Rectangle<int> (x, owner->getBottom(), w, shadowEdge); break;
                     default: break;
                 }
+
+                // shadowAvoidRegion, getRemainingBounds() and optional visibility introduced by Smode Tech:
+                if (shadowAvoidRegion.has_value())
+                  swBounds = getRemainingBounds(swBounds, shadowAvoidRegion.value(), i <= 1);
+                
+                if (swBounds.isEmpty())
+                  sw->setVisible(false);
+                else
+                {
+                  sw->setBounds(swBounds);
+                  if (sw)
+                    sw->setVisible(true);
+                }
+                // End of Smode Tech
 
                 if (sw == nullptr)
                     return;
