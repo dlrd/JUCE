@@ -162,7 +162,7 @@ struct TypefaceAscentDescent
     float getScaledDescent() const { return descent * getHeightToPointsFactor(); }
 
     float getPointsToHeightFactor() const { return ascent + descent; }
-    float getHeightToPointsFactor() const { return 1.0f / getPointsToHeightFactor(); }
+    float getHeightToPointsFactor() const { const auto factor = getPointsToHeightFactor(); /* SMODE TECH */return factor != 0.0 ? 1.0f / factor : 1.0; } // for dlrd/Smode-Issues#6877
 
     TypefaceMetrics getTypefaceMetrics() const
     {

@@ -798,7 +798,7 @@ float Font::getHeightInPoints() const
     if (factor > 0.0f)
         return font->getHeight() / factor;
 
-    jassertfalse;
+    // SMODE TECH, jassertfalse; // may happen with Gotham font for dlrd/Smode-Issues#6877
     return 0.0f;
 }
 
