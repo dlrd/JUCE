@@ -624,6 +624,11 @@ void ComponentPeer::callVBlankListeners (double timestampSec)
 
 void ComponentPeer::globalFocusChanged ([[maybe_unused]] Component* comp)
 {
+  // Smode Tech
+  if (getNativeRealtimeModifiers)
+    getNativeRealtimeModifiers();
+  // --
+
     refreshTextInputTarget();
 }
 
