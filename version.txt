@@ -1,0 +1,5 @@
+commit 02e826dddb8dabd323143b10df18fabd69988cb4 
+Author: reuk <reuk@users.noreply.github.com>
+Date:   Tue Jul 8 10:16:12 2025 +0100
+
+    Android: Always set navigation bar colour

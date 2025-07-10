@@ -4004,14 +4004,14 @@ private:
                 // so that the client area exactly fills the available space.
                 if (isFullScreen())
                 {
-                    const auto monitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONULL);
+                    // SMODE const auto monitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONULL);
 
-                    if (monitor == nullptr)
+                    if (/*monitor*/ currentMonitor == nullptr)
                         return 0;
 
                     MONITORINFOEX info{};
                     info.cbSize = sizeof (info);
-                    GetMonitorInfo (monitor, &info);
+                    GetMonitorInfo (currentMonitor, &info); // SMODE replace MonitorFromWindow that may fail when switching from minimized state by currentMonitor for (dlrd/Smode-Issues#6730)
 
                     const auto padX = info.rcMonitor.left - param->left;
                     const auto padY = info.rcMonitor.top - param->top;

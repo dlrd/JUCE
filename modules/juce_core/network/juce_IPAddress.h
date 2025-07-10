@@ -56,7 +56,7 @@ public:
 
     //==============================================================================
     /** Populates a list of all the IP addresses that this machine is using. */
-    static void findAllAddresses (Array<IPAddress>& results, bool includeIPv6 = false);
+    static void findAllAddresses (Array<IPAddress>& results, bool includeIPv6 = false, /* SMODE */bool onlyOperational = false);
 
     /** Populates a list of all the IP addresses that this machine is using. */
     static Array<IPAddress> getAllAddresses (bool includeIPv6 = false);
@@ -149,6 +149,15 @@ public:
         If the address is not an interface, it will return a null address.
     */
     static IPAddress getInterfaceBroadcastAddress (const IPAddress& interfaceAddress);
+
+    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
+    static String getInterfaceFriendlyName(const IPAddress& interfaceAddress);
+
+    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated decription.
+    static String getInterfaceDescription(const IPAddress& interfaceAddress);
+
+    // SMODE return true if the IPAdress is optained via DHCP
+    static bool isDHCPInterface(const IPAddress& interfaceAddress);
 };
 
 } // namespace juce

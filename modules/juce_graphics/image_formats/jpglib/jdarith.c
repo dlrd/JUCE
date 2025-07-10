@@ -509,7 +509,7 @@ decode_mcu_AC_refine (j_decompress_ptr cinfo, JBLOCKARRAY MCU_data)
  */
 
 METHODDEF(boolean)
-decode_mcu (j_decompress_ptr cinfo, JBLOCKARRAY MCU_data)
+/* SMODE add my_ */my_decode_mcu(j_decompress_ptr cinfo, JBLOCKARRAY MCU_data)
 {
   arith_entropy_ptr entropy = (arith_entropy_ptr) cinfo->entropy;
   jpeg_component_info * compptr;
@@ -641,7 +641,7 @@ decode_mcu (j_decompress_ptr cinfo, JBLOCKARRAY MCU_data)
  */
 
 METHODDEF(void)
-start_pass (j_decompress_ptr cinfo)
+/*SMODE add my_*/my_start_pass(j_decompress_ptr cinfo)
 {
   arith_entropy_ptr entropy = (arith_entropy_ptr) cinfo->entropy;
   int ci, tbl;
@@ -689,14 +689,14 @@ start_pass (j_decompress_ptr cinfo)
     /* Select MCU decoding routine */
     if (cinfo->Ah == 0) {
       if (cinfo->Ss == 0)
-	entropy->pub.decode_mcu_f = decode_mcu_DC_first;
+	entropy->pub.decode_mcu = decode_mcu_DC_first;
       else
-	entropy->pub.decode_mcu_f = decode_mcu_AC_first;
+	entropy->pub.decode_mcu = decode_mcu_AC_first;
     } else {
       if (cinfo->Ss == 0)
-	entropy->pub.decode_mcu_f = decode_mcu_DC_refine;
+	entropy->pub.decode_mcu = decode_mcu_DC_refine;
       else
-	entropy->pub.decode_mcu_f = decode_mcu_AC_refine;
+	entropy->pub.decode_mcu = decode_mcu_AC_refine;
     }
   } else {
     /* Check that the scan parameters Ss, Se, Ah/Al are OK for sequential JPEG.
@@ -706,7 +706,7 @@ start_pass (j_decompress_ptr cinfo)
 	(cinfo->Se < DCTSIZE2 && cinfo->Se != cinfo->lim_Se))
       WARNMS(cinfo, JWRN_NOT_SEQUENTIAL);
     /* Select MCU decoding routine */
-    entropy->pub.decode_mcu_f = decode_mcu;
+    entropy->pub.decode_mcu = my_decode_mcu; // SMODE add my_
   }
 
   /* Allocate & initialize requested statistics areas */
@@ -770,8 +770,8 @@ jinit_arith_decoder (j_decompress_ptr cinfo)
   entropy = (arith_entropy_ptr) (*cinfo->mem->alloc_small)
     ((j_common_ptr) cinfo, JPOOL_IMAGE, SIZEOF(arith_entropy_decoder));
   cinfo->entropy = &entropy->pub;
-  entropy->pub.start_pass_f = start_pass;
-  entropy->pub.finish_pass_f = finish_pass;
+  entropy->pub.start_pass = my_start_pass;
+  entropy->pub.finish_pass = finish_pass;
 
   /* Mark tables unallocated */
   for (i = 0; i < NUM_ARITH_TBLS; i++) {
@@ -789,7 +789,7 @@ jinit_arith_decoder (j_decompress_ptr cinfo)
       ((j_common_ptr) cinfo, JPOOL_IMAGE,
        cinfo->num_components * DCTSIZE2 * SIZEOF(int));
     coef_bit_ptr = & cinfo->coef_bits[0][0];
-    for (ci = 0; ci < cinfo->num_components; ci++)
+    for (ci = 0; ci < cinfo->num_components; ci++) 
       for (i = 0; i < DCTSIZE2; i++)
 	*coef_bit_ptr++ = -1;
   }

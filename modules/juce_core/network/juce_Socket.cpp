@@ -212,6 +212,20 @@ namespace SocketHelpers
         return -1;
     }
 
+    static String getBoundHost(SocketHandle handle) noexcept /* SMODE TECH */
+    {
+      if (handle >= 0)
+      {
+        struct sockaddr_in addr;
+        socklen_t len = sizeof(addr);
+
+        if (getsockname(handle, (struct sockaddr*)&addr, &len) == 0)
+          return inet_ntoa(addr.sin_addr);
+      }
+
+      return {};
+    }
+
     static String getConnectedAddress (SocketHandle handle) noexcept
     {
         struct sockaddr_in addr;
@@ -557,6 +571,11 @@ int StreamingSocket::getBoundPort() const noexcept
     return SocketHelpers::getBoundPort ((SocketHandle) handle.load());
 }
 
+String StreamingSocket::getBoundHost() const noexcept /* SMODE TECH */
+{
+  return SocketHelpers::getBoundHost ((SocketHandle) handle.load());
+}
+
 bool StreamingSocket::connect (const String& remoteHostName, int remotePortNumber, int timeOutMillisecs)
 {
     jassert (SocketHelpers::isValidPortNumber (remotePortNumber));
@@ -647,7 +666,8 @@ StreamingSocket* StreamingSocket::waitForNextConnection() const
 
         if (newSocket >= 0 && connected)
             return new StreamingSocket (inet_ntoa (((struct sockaddr_in*) &address)->sin_addr),
-                                        portNumber, newSocket, options);
+              /*portNumber SMODE TECH destination port is the received one, for dlrd/Smode-Issues#6009 */
+              ntohs(((struct sockaddr_in*)&address)->sin_port), newSocket, options);
     }
 
     return nullptr;
@@ -715,8 +735,15 @@ bool DatagramSocket::bindToPort (int port, const String& addr)
 {
     jassert (SocketHelpers::isValidPortNumber (port));
 
-    if (handle < 0)
-        return false;
+    if (handle < 0) // SMODE socket has been previously shutdown
+    {
+      handle = (int)socket(AF_INET, SOCK_DGRAM, 0);
+      if (handle >= 0)
+      {
+        SocketHelpers::resetSocketOptions(handle, true, allowBroadcast, options);
+        SocketHelpers::makeReusable(handle);
+      }
+   }
 
     if (SocketHelpers::bindSocket ((SocketHandle) handle.load(), port, addr))
     {
@@ -731,6 +758,11 @@ bool DatagramSocket::bindToPort (int port, const String& addr)
 int DatagramSocket::getBoundPort() const noexcept
 {
     return (handle >= 0 && isBound) ? SocketHelpers::getBoundPort ((SocketHandle) handle.load()) : -1;
+}
+
+String DatagramSocket::getBoundHost() const noexcept /* SMODE TECH */
+{
+  return (handle >= 0 && isBound) ? SocketHelpers::getBoundHost(handle) : String();
 }
 
 //==============================================================================

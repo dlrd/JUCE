@@ -148,7 +148,9 @@ void Thread::killThread()
 
 void JUCE_CALLTYPE Thread::setCurrentThreadName ([[maybe_unused]] const String& name)
 {
-   #if JUCE_DEBUG && JUCE_MSVC
+   #if /**JUCE_DEBUG SMODE && */ JUCE_MSVC
+    if (!juce_isRunningUnderDebugger()) // SMODE
+      return;
     struct
     {
         DWORD dwType;
@@ -270,11 +272,12 @@ void* JUCE_CALLTYPE Process::getCurrentModuleInstanceHandle() noexcept
 {
     if (currentModuleHandle == nullptr)
     {
+      /* SMODE of course Juce is built as a DLL but application is not a plugin: it is the hosting application (SMODE), this avoid to call setCurrentModuleInstanceHandle at boot
         auto status = GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                          (LPCTSTR) &currentModuleHandle,
                                          (HMODULE*) &currentModuleHandle);
 
-        if (status == 0 || currentModuleHandle == nullptr)
+        if (status == 0 || currentModuleHandle == nullptr)  SMODE */
             currentModuleHandle = GetModuleHandleA (nullptr);
     }
 

@@ -302,7 +302,7 @@ void TextLayout::createLayoutWithBalancedLineLengths (const AttributedString& te
         auto longest  = jmax (line1, line2);
         auto prop = shortest > 0 ? longest / shortest : 1.0f;
 
-        if (prop > 0.9f && prop < 1.1f)
+        if (prop > 0.9f /* SMODE regression from Juce 5 port (dlrd/Smode-Issues#3807): && prop < 1.1f*/)
             return;
 
         if (prop > bestLineProportion)

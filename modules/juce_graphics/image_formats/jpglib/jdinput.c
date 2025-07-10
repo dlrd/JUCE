@@ -514,12 +514,12 @@ latch_quant_tables (j_decompress_ptr cinfo)
  */
 
 METHODDEF(void)
-start_input_pass (j_decompress_ptr cinfo)
+/*Smode add my */my_start_input_pass(j_decompress_ptr cinfo)
 {
   per_scan_setup(cinfo);
   latch_quant_tables(cinfo);
-  (*cinfo->entropy->start_pass_f) (cinfo);
-  (*cinfo->coef->start_input_pass_f) (cinfo);
+  (*cinfo->entropy->start_pass) (cinfo);
+  (*cinfo->coef->start_input_pass) (cinfo);
   cinfo->inputctl->consume_input = cinfo->coef->consume_data;
 }
 
@@ -533,7 +533,7 @@ start_input_pass (j_decompress_ptr cinfo)
 METHODDEF(void)
 finish_input_pass (j_decompress_ptr cinfo)
 {
-  (*cinfo->entropy->finish_pass_f) (cinfo);
+  (*cinfo->entropy->finish_pass) (cinfo);
   cinfo->inputctl->consume_input = consume_markers;
 }
 
@@ -583,7 +583,7 @@ consume_markers (j_decompress_ptr cinfo)
 	  ERREXIT(cinfo, JERR_EOI_EXPECTED); /* Oops, I wasn't expecting this! */
 	if (cinfo->comps_in_scan == 0) /* unexpected pseudo SOS marker */
 	  break;
-	start_input_pass(cinfo);
+  /* Smode Add my*/my_start_input_pass(cinfo);
       }
       return val;
     case JPEG_REACHED_EOI:	/* Found EOI */
@@ -646,7 +646,7 @@ jinit_input_controller (j_decompress_ptr cinfo)
   /* Initialize method pointers */
   inputctl->pub.consume_input = consume_markers;
   inputctl->pub.reset_input_controller = reset_input_controller;
-  inputctl->pub.start_input_pass = start_input_pass;
+  inputctl->pub.start_input_pass = my_start_input_pass;
   inputctl->pub.finish_input_pass = finish_input_pass;
   /* Initialize state: can't use reset_input_controller since we don't
    * want to try to reset other modules yet.

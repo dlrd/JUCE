@@ -93,7 +93,7 @@ char* MemoryOutputStream::prepareToWrite (size_t numBytes)
     if (blockToUse != nullptr)
     {
         if (storageNeeded >= blockToUse->getSize())
-            blockToUse->ensureSize ((storageNeeded + jmin (storageNeeded / 2, (size_t) (1024 * 1024)) + 32) & ~31u);
+            blockToUse->ensureSize ((storageNeeded * 2)); // SMODE_TECH quadratic complexity on many small buffer added in a huge one for dlrd/Smode-Issues#6853 + jmin(storageNeeded / 2, (size_t)(1024 * 1024)) + 32) & ~31u);
 
         data = static_cast<char*> (blockToUse->getData());
     }

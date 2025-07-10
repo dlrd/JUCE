@@ -100,7 +100,7 @@ public:
 
         @see hideTip
     */
-    void displayTip (Point<int> screenPosition, const String& text);
+    virtual /* SMODE add virtual */ void displayTip(Point<int> screenPosition, const String& text);
 
     /** Can be called to manually hide the tip if it's showing. */
     void hideTip();
