@@ -345,7 +345,12 @@ namespace SocketHelpers
             juce_socklen_t len = sizeof (opt);
 
             if (getsockopt (h, SOL_SOCKET, SO_ERROR, (char*) &opt, &len) < 0  || opt != 0)
+            {
+              #ifdef JUCE_WINDOWS
+                WSASetLastError(opt); // Smode Tech: propagate error code
+              #endif
                 return true;
+            }
 
             return false;
         };
@@ -380,7 +385,10 @@ namespace SocketHelpers
         if (select ((int) h + 1, prset, pwset, nullptr, timeoutp) < 0 || hasErrorOccurred())
             return -1;
 
-        return FD_ISSET (h, forReading ? &rset : &wset) ? 1 : 0;
+        const int res = FD_ISSET (h, forReading ? &rset : &wset) ? 1 : 0;
+        if (!res)
+          WSASetLastError(WSAETIMEDOUT); // Smode Tech: propagate error reason
+        return res;
       #else
         short eventsFlag = (forReading ? POLLIN : POLLOUT);
         pollfd pfd { (SocketHandle) h, eventsFlag, 0 };
@@ -440,10 +448,12 @@ namespace SocketHelpers
                     auto result = ::connect (newHandle, i->ai_addr, (socklen_t) i->ai_addrlen);
                     success = (result >= 0);
 
+                    int backupErrorCode = 0; // SMode Tech backup error code 
                     if (! success)
                     {
                        #if JUCE_WINDOWS
-                        if (result == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+                        backupErrorCode = WSAGetLastError(); // SMode Tech backup error code 
+                        if (result == SOCKET_ERROR && backupErrorCode == WSAEWOULDBLOCK)
                        #else
                         if (errno == EINPROGRESS)
                        #endif
@@ -452,6 +462,10 @@ namespace SocketHelpers
 
                             if (waitForReadiness (cvHandle, readLock, false, timeOutMillisecs) == 1)
                                 success = true;
+                           #if JUCE_WINDOWS
+                            else 
+                                backupErrorCode = WSAGetLastError(); // SMode Tech backup error code 
+                           #endif
                         }
                     }
 
@@ -463,6 +477,7 @@ namespace SocketHelpers
 
                    #if JUCE_WINDOWS
                     closesocket (newHandle);
+                    WSASetLastError(backupErrorCode); // SMode Tech Restore error code 
                    #else
                     ::close (newHandle);
                    #endif
