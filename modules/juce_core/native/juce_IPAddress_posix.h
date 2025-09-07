@@ -158,6 +158,10 @@ String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
 
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   {return false;}
+
+static MACAddress getInterfaceMacAddress(const IPAddress& interfaceAddress)
+  {return false;}
+
 // SMODE
 
 } // namespace juce

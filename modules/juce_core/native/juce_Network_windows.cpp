@@ -746,8 +746,27 @@ bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   return false;
 }
 
-// SMODE
+MACAddress IPAddress::getInterfaceMacAddress(const IPAddress& interfaceAddress)
+{
+  if (interfaceAddress == IPAddress()) // null ip address (0.0.0.0, 0:0:0:0:0:0:0:0 or ::)
+    return {};
+  if (interfaceAddress == local(true) || interfaceAddress == local(false))
+    return {};
 
+  GetAdaptersAddressesHelper addressesHelper;
+
+  if (addressesHelper.callGetAdaptersAddresses())
+  {
+    for (PIP_ADAPTER_ADDRESSES adapter = addressesHelper.adaptersAddresses; adapter != nullptr; adapter = adapter->Next)
+      for (auto addr = adapter->FirstUnicastAddress; addr != nullptr; addr = addr->Next)
+        if (MACAddressHelpers::createAddressFromKnownFamily(addr) == interfaceAddress)
+          return MACAddress(adapter->PhysicalAddress);
+  }
+
+  return {};
+}
+
+// SMODE
 
 //==============================================================================
 bool JUCE_CALLTYPE Process::openEmailWithAttachments (const String& targetEmailAddress,

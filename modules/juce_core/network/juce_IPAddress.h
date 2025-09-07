@@ -34,7 +34,7 @@
 
 namespace juce
 {
-
+class MACAddress; // Smode
 //==============================================================================
 /**
     Represents an IP address.
@@ -150,14 +150,18 @@ public:
     */
     static IPAddress getInterfaceBroadcastAddress (const IPAddress& interfaceAddress);
 
-    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated friendlyName.
+    // SMODE If the IPAddress is the address of an interface on the machine, returns the associated friendlyName.
     static String getInterfaceFriendlyName(const IPAddress& interfaceAddress);
 
-    // SMODE If the IPAdress is the address of an interface on the machine, returns the associated decription.
+    // SMODE If the IPAddress is the address of an interface on the machine, returns the associated description.
     static String getInterfaceDescription(const IPAddress& interfaceAddress);
 
-    // SMODE return true if the IPAdress is optained via DHCP
+    // SMODE return true if the IPAddress is obtained via DHCP
     static bool isDHCPInterface(const IPAddress& interfaceAddress);
+
+    // SMODE return IPAddress related Mac Address
+    static MACAddress getInterfaceMacAddress(const IPAddress& interfaceAddress);
+    
 };
 
 } // namespace juce
