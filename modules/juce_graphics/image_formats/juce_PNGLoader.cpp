@@ -492,6 +492,120 @@ namespace PNGHelpers
 
         return Image();
     }
+
+    static bool writeImageDataHeader(OutputStream& out, png_structp pngWriteStruct, png_infop pngInfoStruct, jmp_buf& errorJumpBuf, const png_color_8* sig_bit, png_uint_32 width, png_uint_32 height, bool hasAlpha) noexcept
+    {
+      if (setjmp(errorJumpBuf) == 0)
+      {
+        png_set_write_fn(pngWriteStruct, &out, PNGHelpers::writeDataCallback, nullptr);
+
+        png_set_IHDR(pngWriteStruct, pngInfoStruct, width, height, 8,
+          hasAlpha ? PNG_COLOR_TYPE_RGB_ALPHA : PNG_COLOR_TYPE_RGB,
+          PNG_INTERLACE_NONE,
+          PNG_COMPRESSION_TYPE_BASE,
+          PNG_FILTER_TYPE_BASE);
+
+        png_set_sBIT(pngWriteStruct, pngInfoStruct, sig_bit);
+        png_write_info(pngWriteStruct, pngInfoStruct);
+        png_set_shift(pngWriteStruct, sig_bit);
+        png_set_packing(pngWriteStruct);
+
+        return true;
+      }
+      return false;
+    }
+
+    static void writeRows(jmp_buf& errorJumpBuf, png_structrp png_ptr, png_bytepp row, png_uint_32 num_rows) noexcept
+    {
+      if (setjmp(errorJumpBuf) == 0)
+        png_write_rows(png_ptr, row, num_rows);
+    }
+
+    static void writeEnd(jmp_buf& errorJumpBuf, png_structrp png_ptr, png_inforp info_ptr) noexcept
+    {
+      if (setjmp(errorJumpBuf) == 0)
+        png_write_end(png_ptr, info_ptr);
+    }
+
+    static bool writeImageData(const Image& image, OutputStream& out, png_structp pngWriteStruct, png_infop pngInfoStruct)
+    {
+      jmp_buf errorJumpBuf;
+      png_set_error_fn(pngWriteStruct, &errorJumpBuf, errorCallback, warningCallback); // SmodeTech
+
+      using namespace pnglibNamespace;
+      auto width = image.getWidth();
+      auto height = image.getHeight();
+
+      png_color_8 sig_bit;
+      sig_bit.red = 8;
+      sig_bit.green = 8;
+      sig_bit.blue = 8;
+      sig_bit.gray = 0;
+      sig_bit.alpha = 8;
+
+      if (!writeImageDataHeader(out, pngWriteStruct, pngInfoStruct, errorJumpBuf, &sig_bit, (png_uint_32)width, (png_uint_32)height, image.hasAlphaChannel()))
+        return false;
+
+      HeapBlock<uint8> rowData(width * 4);
+
+      const Image::BitmapData srcData(image, Image::BitmapData::readOnly);
+
+      for (int y = 0; y < height; ++y)
+      {
+        uint8* dst = rowData;
+        const uint8* src = srcData.getLinePointer(y);
+
+        if (image.hasAlphaChannel())
+        {
+          for (int i = width; --i >= 0;)
+          {
+            PixelARGB p(*(const PixelARGB*)src);
+            p.unpremultiply();
+
+            *dst++ = p.getRed();
+            *dst++ = p.getGreen();
+            *dst++ = p.getBlue();
+            *dst++ = p.getAlpha();
+            src += srcData.pixelStride;
+          }
+        }
+        else
+        {
+          for (int i = width; --i >= 0;)
+          {
+            *dst++ = ((const PixelRGB*)src)->getRed();
+            *dst++ = ((const PixelRGB*)src)->getGreen();
+            *dst++ = ((const PixelRGB*)src)->getBlue();
+            src += srcData.pixelStride;
+          }
+        }
+
+        png_bytep rowPtr = rowData;
+        writeRows(errorJumpBuf, pngWriteStruct, &rowPtr, 1);
+      }
+
+      writeEnd(errorJumpBuf, pngWriteStruct, pngInfoStruct);
+
+      return true;
+    }
+
+    static bool writeImage(const Image& image, OutputStream& out)
+    {
+      if (png_structp pngWriteStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr))
+      {
+        if (png_infop pngInfoStruct = png_create_info_struct(pngWriteStruct))
+        {
+          bool res = writeImageData(image, out, pngWriteStruct, pngInfoStruct);
+          png_destroy_write_struct(&pngWriteStruct, &pngInfoStruct);
+          return res;
+        }
+
+        png_destroy_write_struct(&pngWriteStruct, nullptr);
+      }
+
+      return false;
+    }
+
    #endif
 }
 
@@ -526,89 +640,7 @@ Image PNGImageFormat::decodeImage (InputStream& in)
    #endif
 }
 
-bool PNGImageFormat::writeImageToStream (const Image& image, OutputStream& out)
-{
-    using namespace pnglibNamespace;
-    auto width = image.getWidth();
-    auto height = image.getHeight();
-
-    auto pngWriteStruct = png_create_write_struct (PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-
-    if (pngWriteStruct == nullptr)
-        return false;
-
-    auto pngInfoStruct = png_create_info_struct (pngWriteStruct);
-
-    if (pngInfoStruct == nullptr)
-    {
-        png_destroy_write_struct (&pngWriteStruct, nullptr);
-        return false;
-    }
-
-    png_set_write_fn (pngWriteStruct, &out, PNGHelpers::writeDataCallback, nullptr);
-
-    png_set_IHDR (pngWriteStruct, pngInfoStruct, (png_uint_32) width, (png_uint_32) height, 8,
-                  image.hasAlphaChannel() ? PNG_COLOR_TYPE_RGB_ALPHA
-                                          : PNG_COLOR_TYPE_RGB,
-                  PNG_INTERLACE_NONE,
-                  PNG_COMPRESSION_TYPE_BASE,
-                  PNG_FILTER_TYPE_BASE);
-
-    HeapBlock<uint8> rowData (width * 4);
-
-    png_color_8 sig_bit;
-    sig_bit.red   = 8;
-    sig_bit.green = 8;
-    sig_bit.blue  = 8;
-    sig_bit.gray  = 0;
-    sig_bit.alpha = 8;
-    png_set_sBIT (pngWriteStruct, pngInfoStruct, &sig_bit);
-
-    png_write_info (pngWriteStruct, pngInfoStruct);
-
-    png_set_shift (pngWriteStruct, &sig_bit);
-    png_set_packing (pngWriteStruct);
-
-    const Image::BitmapData srcData (image, Image::BitmapData::readOnly);
-
-    for (int y = 0; y < height; ++y)
-    {
-        uint8* dst = rowData;
-        const uint8* src = srcData.getLinePointer (y);
-
-        if (image.hasAlphaChannel())
-        {
-            for (int i = width; --i >= 0;)
-            {
-                PixelARGB p (*(const PixelARGB*) src);
-                p.unpremultiply();
-
-                *dst++ = p.getRed();
-                *dst++ = p.getGreen();
-                *dst++ = p.getBlue();
-                *dst++ = p.getAlpha();
-                src += srcData.pixelStride;
-            }
-        }
-        else
-        {
-            for (int i = width; --i >= 0;)
-            {
-                *dst++ = ((const PixelRGB*) src)->getRed();
-                *dst++ = ((const PixelRGB*) src)->getGreen();
-                *dst++ = ((const PixelRGB*) src)->getBlue();
-                src += srcData.pixelStride;
-            }
-        }
-
-        png_bytep rowPtr = rowData;
-        png_write_rows (pngWriteStruct, &rowPtr, 1);
-    }
-
-    png_write_end (pngWriteStruct, pngInfoStruct);
-    png_destroy_write_struct (&pngWriteStruct, &pngInfoStruct);
-
-    return true;
-}
+bool PNGImageFormat::writeImageToStream(const Image& image, OutputStream& out)
+  {return PNGHelpers::writeImage(image, out);} // Smode Tech move code into static helper
 
 } // namespace juce
