@@ -157,7 +157,7 @@ target_compile_definitions(juce PUBLIC
 
 
 if (NOT OIL_OPTION_BUILD_STATIC_LIBRARIES)
-  smode_install_target(juce EXPORT RUNTIME_COMPONENT Smode ARCHIVE_COMPONENT SmodeSDK)
+  smode_install_target(juce EXPORT RUNTIME_COMPONENT Smode SDK_COMPONENT SmodeSDK)
 
   oil_binary_sign(juce)
 endif ()
