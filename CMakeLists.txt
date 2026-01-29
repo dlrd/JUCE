@@ -82,7 +82,7 @@ SET(JUCE_SOURCES
   ${JUCE_OCS_SOURCES}
 )
 
-ADD_LIBRARY(juce ${OIL_LIBRARY_TYPE} ${JUCE_SOURCES})
+ADD_LIBRARY(juce ${SMODE_LIBRARY_TYPE} ${JUCE_SOURCES})
 
 if (JUCE_MODULE_AVAILABLE_juce_gui_basics)
   target_compile_definitions(juce PUBLIC JUCE_MODULE_AVAILABLE_juce_gui_basics=1)
@@ -156,7 +156,7 @@ target_compile_definitions(juce PUBLIC
 )
 
 
-if (NOT OIL_OPTION_BUILD_STATIC_LIBRARIES)
+if (NOT SMODE_OPTION_STATIC_LIBS)
   smode_install_target(juce EXPORT)
 
   oil_binary_sign(juce)
