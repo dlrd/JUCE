@@ -667,7 +667,7 @@ public:
     };
 
     //==============================================================================
-   #if JUCE_MODAL_LOOPS_PERMITTED
+   #if 0 // SMODE TECH you must use menu async callback now !!!  JUCE_MODAL_LOOPS_PERMITTED
     /** Displays the menu and waits for the user to pick something.
 
         This will display the menu modally, and return the ID of the item that the

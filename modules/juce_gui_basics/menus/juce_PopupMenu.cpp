@@ -2239,7 +2239,7 @@ int PopupMenu::showWithOptionalCallback (const Options& options,
         window->toFront (false);  // need to do this after making it modal, or it could
                                   // be stuck behind other comps that are already modal..
 
-       #if JUCE_MODAL_LOOPS_PERMITTED
+       #if 0 // SMODE JUCE_MODAL_LOOPS_PERMITTED
         if (userCallback == nullptr && canBeModal)
             return window->runModalLoop();
        #else
@@ -2253,7 +2253,7 @@ int PopupMenu::showWithOptionalCallback (const Options& options,
 }
 
 //==============================================================================
-#if JUCE_MODAL_LOOPS_PERMITTED
+#if 0 // SMODE JUCE_MODAL_LOOPS_PERMITTED
 int PopupMenu::showMenu (const Options& options)
 {
     return showWithOptionalCallback (options, nullptr, true);
@@ -2269,7 +2269,7 @@ Component* PopupMenu::showMenuAsync (const Options& options)
 
 Component* PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Callback* userCallback)
 {
-   #if ! JUCE_MODAL_LOOPS_PERMITTED
+   #if 1 // SMODE ! JUCE_MODAL_LOOPS_PERMITTED
     jassert (userCallback != nullptr);
    #endif
     Component* createdComponent = nullptr; // SMODE TECH
@@ -2298,7 +2298,7 @@ const juce::PopupMenu::Item* PopupMenu::getItemUnderMouseFromMenuComponent(Compo
 // ---
 
 //==============================================================================
-#if JUCE_MODAL_LOOPS_PERMITTED
+#if 0 // SMODE TECH JUCE_MODAL_LOOPS_PERMITTED
 int PopupMenu::show (int itemIDThatMustBeVisible, int minimumWidth,
                      int maximumNumColumns, int standardItemHeight,
                      ModalComponentManager::Callback* callback)
