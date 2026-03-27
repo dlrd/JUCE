@@ -160,7 +160,7 @@ bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   {return false;}
 
 static MACAddress getInterfaceMacAddress(const IPAddress& interfaceAddress)
-  {return false;}
+  {return {};}
 
 // SMODE
 
