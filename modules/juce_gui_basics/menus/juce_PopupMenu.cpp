@@ -1466,7 +1466,8 @@ private:
         if (itemUnderMouse == nullptr && c != nullptr)
             itemUnderMouse = c->findParentComponentOfClass<ItemComponent>();
         auto customComponent = itemUnderMouse ? itemUnderMouse->item.customComponent : nullptr;
-        if (customComponent && !customComponent->shouldShowSubMenu() && window.activeSubMenu)
+        // don't hide the submenu if the mouse is actually over it, getComponentAt is Z-order blind across popup windows (dlrd/Smode-Issues#7601)
+        if (customComponent && !customComponent->shouldShowSubMenu() && window.activeSubMenu && !window.activeSubMenu->isOverChildren())
             window.activeSubMenu->hide (nullptr, true);
         // --
 
