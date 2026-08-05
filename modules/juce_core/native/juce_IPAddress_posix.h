@@ -159,7 +159,7 @@ String IPAddress::getInterfaceDescription(const IPAddress& interfaceAddress)
 bool IPAddress::isDHCPInterface(const IPAddress& interfaceAddress)
   {return false;}
 
-static MACAddress getInterfaceMacAddress(const IPAddress& interfaceAddress)
+MACAddress IPAddress::getInterfaceMacAddress(const IPAddress& interfaceAddress)
   {return {};}
 
 // SMODE
