@@ -427,6 +427,121 @@ namespace SocketHelpers
         return nullptr;
     }
 
+   #if JUCE_WINDOWS
+    // SMODE TECH: conver ADDRINFOEXW to a new addrinfo that must be free by freeAddressInfoWithTimeout()
+    static addrinfo* convertToNewAddrInfo (const ADDRINFOEXW* source)
+    {
+        addrinfo* first = nullptr;
+        addrinfo** next = &first;
+
+        for (auto* i = source; i != nullptr; i = i->ai_next)
+        {
+            if (i->ai_addr == nullptr || i->ai_addrlen == 0)
+                continue;
+
+            auto* node = static_cast<addrinfo*> (std::calloc (1, sizeof (addrinfo)));
+            node->ai_flags = i->ai_flags;
+            node->ai_family = i->ai_family;
+            node->ai_socktype = i->ai_socktype;
+            node->ai_protocol = i->ai_protocol;
+            node->ai_addrlen = i->ai_addrlen;
+            node->ai_addr = static_cast<sockaddr*> (std::malloc (i->ai_addrlen));
+            std::memcpy (node->ai_addr, i->ai_addr, i->ai_addrlen);
+            *next = node;
+            next = &node->ai_next;
+        }
+
+        return first;
+    }
+   #endif
+
+    // SMODE TECH: a stream socket name resolution must not block its caller forever when the resolver stalls, so it is
+    // bounded by timeOutMillisecs on Windows (a negative value means no timeout). The synchronous GetAddrInfoExW rejects
+    // a timeout (WSAEINVAL), so the bounded form is the overlapped one: the calling thread waits on the completion event
+    // and cancels the request when the timeout expires, no extra thread involved. Release the result with freeAddressInfoWithTimeout()
+    static addrinfo* getAddressInfoWithTimeout (const String& hostName, int portNumber, int timeOutMillisecs)
+    {
+       #if JUCE_WINDOWS
+        ADDRINFOEXW hints;
+        zerostruct (hints);
+
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_NUMERICSERV;
+
+        // Heap allocated so that it can be abandoned when even the cancellation does not complete: the resolver
+        // may still write into it afterwards
+        struct Request
+        {
+            OVERLAPPED overlapped;
+            PADDRINFOEXW result;
+        };
+
+        auto* request = static_cast<Request*> (std::calloc (1, sizeof (Request)));
+        request->overlapped.hEvent = CreateEventW (nullptr, TRUE /* manual reset */, FALSE, nullptr);
+        HANDLE cancelHandle = nullptr;
+        const String service (portNumber);
+        const DWORD waitMillisecs = timeOutMillisecs < 0 ? INFINITE : (DWORD) timeOutMillisecs;
+
+        int error = GetAddrInfoExW (hostName.toWideCharPointer(), service.toWideCharPointer(), NS_ALL, nullptr,
+                                    &hints, &request->result, nullptr, &request->overlapped, nullptr, &cancelHandle);
+
+        if (error == WSA_IO_PENDING)
+        {
+            if (WaitForSingleObject (request->overlapped.hEvent, waitMillisecs) == WAIT_OBJECT_0)
+            {
+                error = GetAddrInfoExOverlappedResult (&request->overlapped);
+            }
+            else
+            {
+                GetAddrInfoExCancel (&cancelHandle);
+                error = WSA_WAIT_TIMEOUT;
+
+                if (WaitForSingleObject (request->overlapped.hEvent, waitMillisecs) != WAIT_OBJECT_0)
+                {
+                    // The resolver is stalled beyond cancellation: abandon the request (and its event) on purpose,
+                    // freeing it could be a use after free when the completion is eventually posted
+                    WSASetLastError (error);
+                    return nullptr;
+                }
+            }
+        }
+
+        addrinfo* info = nullptr;
+
+        if (error == NO_ERROR)
+            info = convertToNewAddrInfo(request->result);
+        else
+            WSASetLastError (error); // propagate the resolution error (e.g. WSA_WAIT_TIMEOUT) to the caller
+
+        if (request->result != nullptr)
+            FreeAddrInfoExW (request->result);
+
+        CloseHandle (request->overlapped.hEvent);
+        std::free (request);
+        return info;
+       #else
+        ignoreUnused (timeOutMillisecs);
+        return getAddressInfo (false, hostName, portNumber);
+       #endif
+    }
+
+    // SMODE TECH: releases a chain returned by getAddressInfoWithTimeout()
+    static void freeAddressInfoWithTimeout(addrinfo* info)
+    {
+       #if JUCE_WINDOWS
+        while (info != nullptr)
+        {
+            auto* next = info->ai_next;
+            std::free (info->ai_addr);
+            std::free (info);
+            info = next;
+        }
+       #else
+        freeaddrinfo (info);
+       #endif
+    }
+
     static bool connectSocket (std::atomic<int>& handle,
                                CriticalSection& readLock,
                                const String& hostName,
@@ -436,7 +551,7 @@ namespace SocketHelpers
     {
         bool success = false;
 
-        if (auto* info = getAddressInfo (false, hostName, portNumber))
+        if (auto* info = getAddressInfoWithTimeout (hostName, portNumber, timeOutMillisecs)) // SMODE TECH: getAddressInfoWithTimeout instead of getAddressInfo for (dlrd/Smode-Issues#7915)
         {
             for (auto* i = info; i != nullptr; i = i->ai_next)
             {
@@ -484,7 +599,7 @@ namespace SocketHelpers
                 }
             }
 
-            freeaddrinfo (info);
+            freeAddressInfoWithTimeout (info); // SMODE TECH freeAddressInfoWithTimeout instead of freeaddrinfo for (dlrd/Smode-Issues#7915)
 
             if (success)
             {
