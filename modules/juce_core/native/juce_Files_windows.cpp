@@ -172,9 +172,11 @@ namespace WindowsFileHelpers
         return Result::fail (String (messageBuffer));
     }
 
-    // The docs for the Windows security API aren't very clear. Some parts of the following
-    // function (the flags passed to GetNamedSecurityInfo, duplicating the primary access token)
-    // were guided by the example at https://blog.aaronballman.com/2011/08/how-to-check-access-rights/
+    // SMODE TECH Ask the file system itself instead of evaluating the DACL locally with AccessCheck():
+    // on SMB shares (Samba, NAS) the SIDs of the returned DACL do not match the local access
+    // token, so AccessCheck() denies an access that the server grants, and some servers return
+    // no usable DACL at all. Opening a handle with the requested access is what the real
+    // read/write will do anyway, and has no side effect (dlrd/Smode-Issues#7520)
     static bool hasFileAccess (const File& file, DWORD accessType)
     {
         const auto& path = file.getFullPathName();
@@ -182,72 +184,32 @@ namespace WindowsFileHelpers
         if (path.isEmpty())
             return false;
 
-        struct PsecurityDescriptorGuard
-        {
-            ~PsecurityDescriptorGuard() { if (psecurityDescriptor != nullptr) LocalFree (psecurityDescriptor); }
-            PSECURITY_DESCRIPTOR psecurityDescriptor = nullptr;
-        };
+        const auto attr = getAtts (path);
 
-        PsecurityDescriptorGuard descriptorGuard;
-
-        if (GetNamedSecurityInfo (path.toWideCharPointer(),
-                                  SE_FILE_OBJECT,
-                                  OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  &descriptorGuard.psecurityDescriptor) != ERROR_SUCCESS)
-        {
+        if (attr == INVALID_FILE_ATTRIBUTES)
             return false;
+
+        // a directory handle can only be opened with FILE_FLAG_BACKUP_SEMANTICS
+        const DWORD flags = (attr & FILE_ATTRIBUTE_DIRECTORY) != 0 ? FILE_FLAG_BACKUP_SEMANTICS
+                                                                   : FILE_ATTRIBUTE_NORMAL;
+
+        const auto handle = CreateFile (path.toWideCharPointer(),
+                                        accessType,
+                                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                        nullptr,
+                                        OPEN_EXISTING,
+                                        flags,
+                                        nullptr);
+
+        if (handle != INVALID_HANDLE_VALUE)
+        {
+            CloseHandle (handle);
+            return true;
         }
 
-        struct HandleGuard
-        {
-            ~HandleGuard() { if (handle != INVALID_HANDLE_VALUE) CloseHandle (handle); }
-            HANDLE handle = nullptr;
-        };
-
-        HandleGuard primaryTokenGuard;
-
-        if (! OpenProcessToken (GetCurrentProcess(),
-                                TOKEN_IMPERSONATE | TOKEN_DUPLICATE | TOKEN_QUERY | STANDARD_RIGHTS_READ,
-                                &primaryTokenGuard.handle))
-        {
-            return false;
-        }
-
-        HandleGuard duplicatedTokenGuard;
-
-        if (! DuplicateToken (primaryTokenGuard.handle,
-                              SecurityImpersonation,
-                              &duplicatedTokenGuard.handle))
-        {
-            return false;
-        }
-
-        GENERIC_MAPPING mapping { FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS };
-
-        MapGenericMask (&accessType, &mapping);
-        DWORD allowed = 0;
-        BOOL granted = false;
-        PRIVILEGE_SET set;
-        DWORD setSize = sizeof (set);
-
-        if (! AccessCheck (descriptorGuard.psecurityDescriptor,
-                           duplicatedTokenGuard.handle,
-                           accessType,
-                           &mapping,
-                           &set,
-                           &setSize,
-                           &allowed,
-                           &granted))
-        {
-            return false;
-        }
-
-        return granted != FALSE;
-    }
+        // the access is granted, the file is merely opened without sharing by someone else
+        return GetLastError() == ERROR_SHARING_VIOLATION;
+    } // END SMODE TECH
 } // namespace WindowsFileHelpers
 
 //==============================================================================
