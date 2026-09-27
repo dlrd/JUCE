@@ -96,7 +96,7 @@ public:
     */
     bool hasStopMessageBeenSent() const noexcept        { return quitMessagePosted.get() != 0; }
 
-   #if JUCE_MODAL_LOOPS_PERMITTED
+   #if 1 // SMODE TECH: JUCE_MODAL_LOOPS_PERMITTED the nested dispatch pump stays available to oil::Thread::updateUntil() with the modal loops denied (dlrd/Smode-Issues#6927)
     /** Synchronously dispatches messages until a given time has elapsed.
 
         Returns false if a quit message has been posted by a call to stopDispatchLoop(),

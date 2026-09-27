@@ -148,7 +148,7 @@ target_compile_definitions(juce PUBLIC
 
   # juce_gui_basic flags:
   JUCE_WINDOWS_ALT_KEY_TRIGGERS_MENU=1
-  JUCE_MODAL_LOOPS_PERMITTED=1
+  JUCE_MODAL_LOOPS_PERMITTED=0
 
   # juce_gui_extra flags:
   JUCE_WEB_BROWSER=0
