@@ -253,10 +253,7 @@ public:
     void addItem (int itemResultID,
                   String itemText,
                   bool isEnabled = true,
-                  bool isTicked = false,
-                  const String& annotation = String(), /**SMODE add custom annotation who override shortcutKeyDescription */
-                  const juce::Colour colour = juce::Colour(0x0));  /** SMODE add custom colour */
-
+                  bool isTicked = false);
 
     /** Appends a new item with an icon.
 
@@ -353,8 +350,7 @@ public:
     void addCustomItem (int itemResultID,
                         std::unique_ptr<CustomComponent> customComponent,
                         std::unique_ptr<const PopupMenu> optionalSubMenu = nullptr,
-                        const String& itemTitle = {},
-                        bool isEnabled = true /*SMODE */);
+                        const String& itemTitle = {});
 
     /** Appends a custom menu item that can't be used to trigger a result.
 
@@ -747,18 +743,15 @@ public:
    #endif
 
     /** Runs the menu asynchronously. */
-    Component* /* SMODE TECH */ showMenuAsync(const Options& options);
+    void showMenuAsync (const Options& options);
 
     /** Runs the menu asynchronously, with a user-provided callback that will receive the result. */
-    Component* /* SMODE TECH */showMenuAsync (const Options& options,
+    void showMenuAsync (const Options& options,
                         ModalComponentManager::Callback* callback);
 
     /** Runs the menu asynchronously, with a user-provided callback that will receive the result. */
-    Component* /* SMODE TECH */showMenuAsync (const Options& options,
+    void showMenuAsync (const Options& options,
                         std::function<void (int)> callback);
-
-  
-    static const Item* getItemUnderMouseFromMenuComponent(Component* menuComponent);  // SMODE
 
     //==============================================================================
     /** Closes any menus that are currently open.
@@ -875,10 +868,6 @@ public:
             independently accessible.
         */
         explicit CustomComponent (bool isTriggeredAutomatically);
-
-        // SMODE
-        virtual bool shouldShowSubMenu() const
-          {return true;}
 
         /** Returns a rectangle with the size that this component would like to have.
 
@@ -1077,7 +1066,7 @@ private:
     WeakReference<LookAndFeel> lookAndFeel;
 
     Component* createWindow (const Options&, ApplicationCommandManager**) const;
-    int showWithOptionalCallback (const Options&, ModalComponentManager::Callback*, bool, Component** = nullptr /** SMODE TECH */);
+    int showWithOptionalCallback (const Options&, ModalComponentManager::Callback*, bool);
 
     static void setItem (CustomComponent&, const Item*);
 

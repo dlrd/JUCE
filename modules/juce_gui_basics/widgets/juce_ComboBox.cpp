@@ -102,7 +102,13 @@ void ComboBox::addItem (const String& newItemText, const int newItemId, /** SMOD
     jassert (getItemForId (newItemId) == nullptr);
 
     if (newItemText.isNotEmpty() && newItemId != 0)
-        currentMenu.addItem (newItemId, newItemText, true, false, annotation /* // SMODE forward annotation */, colour);
+    {
+        PopupMenu::Item item (newItemText);
+        item.itemID = newItemId;
+        item.shortcutKeyDescription = annotation; // SMODE forward annotation
+        item.colour = colour; // SMODE forward colour
+        currentMenu.addItem (std::move (item));
+    }
 }
 
 // SMODE
