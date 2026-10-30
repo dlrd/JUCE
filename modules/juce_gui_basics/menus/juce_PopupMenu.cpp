@@ -710,12 +710,6 @@ struct MenuWindow final : public Component
         }
     }
 
-    // SMODE
-    // For commands with auxiliary menu
-    bool canModalEventBeSentToComponent (const Component* targetComponent) override
-      {return targetComponent && targetComponent->findParentComponentOfClass<PopupMenu::HelperClasses::MenuWindow>();}
-    // --
-
     void handleCommandMessage (int commandId) override
     {
         Component::handleCommandMessage (commandId);
@@ -995,12 +989,12 @@ struct MenuWindow final : public Component
 
         for (;;)
         {
-              auto totalW = workOutBestSize (maxMenuW, false /* Smode Tech*/);
+            auto totalW = workOutBestSize (maxMenuW);
 
             if (totalW > maxMenuW)
             {
                 numColumns = jmax (1, numColumns - 1);
-                  workOutBestSize (maxMenuW, false /* Smode Tech*/); // to update col widths
+                workOutBestSize (maxMenuW); // to update col widths
                 break;
             }
 
@@ -1073,7 +1067,7 @@ struct MenuWindow final : public Component
         correctColumnWidths (maxMenuW);
     }
 
-    int workOutBestSize (const int maxMenuW, bool hasColumnSeparators /* Smode Tech*/)
+    int workOutBestSize (const int maxMenuW)
     {
         contentHeight = 0;
         int childNum = 0;
@@ -1082,20 +1076,14 @@ struct MenuWindow final : public Component
         {
             int colW = options.getStandardItemHeight(), colH = 0;
 
-            auto numChildren = items.size() - childNum;
-            if (!hasColumnSeparators)
-              numChildren = juce::jmin(numChildren, (items.size() + numColumns - 1) / numColumns);
+            auto numChildren = jmin (items.size() - childNum,
+                                     (items.size() + numColumns - 1) / numColumns);
 
-            // Modified by Smode Tech
-            for (int i = 0; i < numChildren; ++i)
+            for (int i = numChildren; --i >= 0;)
             {
-                auto* c = items.getUnchecked(childNum++);
-                if (c->item.shouldBreakAfter)
-                  break;
-                colW = jmax (colW, c->getWidth());
-                colH += c->getHeight();
+                colW = jmax (colW, items.getUnchecked (childNum + i)->getWidth());
+                colH += items.getUnchecked (childNum + i)->getHeight();
             }
-            // ---
 
             colW = jmin (maxMenuW / jmax (1, numColumns - 2),
                          colW + getLookAndFeel().getPopupMenuBorderSizeWithOptions (options) * 2);
@@ -1458,26 +1446,11 @@ private:
         auto localMousePos = window.getLocalPoint (nullptr, globalMousePos);
         auto timeNow = Time::getMillisecondCounter();
 
-        // SMODE
-        Component* c = window.getComponentAt (localMousePos);
-        if (c == &window)
-            c = nullptr;
-        ItemComponent* itemUnderMouse = dynamic_cast<ItemComponent*> (c);
-        if (itemUnderMouse == nullptr && c != nullptr)
-            itemUnderMouse = c->findParentComponentOfClass<ItemComponent>();
-        auto customComponent = itemUnderMouse ? itemUnderMouse->item.customComponent : nullptr;
-        // don't hide the submenu if the mouse is actually over it, getComponentAt is Z-order blind across popup windows (dlrd/Smode-Issues#7601)
-        if (customComponent && !customComponent->shouldShowSubMenu() && window.activeSubMenu && !window.activeSubMenu->isOverChildren())
-            window.activeSubMenu->hide (nullptr, true);
-        // --
-
         if (timeNow > window.timeEnteredCurrentChildComp + 100
              && window.reallyContains (localMousePos, true)
              && window.currentChild != nullptr
              && ! (window.disableMouseMoves || window.isSubMenuVisible()))
         {
-            // SMODE
-            if (!customComponent || customComponent->shouldShowSubMenu())
             window.showSubMenuFor (window.currentChild);
         }
 
@@ -1868,7 +1841,7 @@ void PopupMenu::addItem (Item newItem)
     // An ID of 0 is used as a return value to indicate that the user
     // didn't pick anything, so you shouldn't use it as the ID for an item.
     jassert (newItem.itemID != 0
-              || newItem.isSeparator || newItem.isSectionHeader || newItem.shouldBreakAfter /* SMODETECH */
+              || newItem.isSeparator || newItem.isSectionHeader
               || newItem.subMenu != nullptr);
 
     items.add (std::move (newItem));
@@ -1888,14 +1861,12 @@ void PopupMenu::addItem (String itemText, bool isActive, bool isTicked, std::fun
     addItem (std::move (i));
 }
 
-void PopupMenu::addItem (int itemResultID, String itemText, bool isActive, bool isTicked, const String& annotation /** SMODE */, const juce::Colour colour  /** SMODE **/)
+void PopupMenu::addItem (int itemResultID, String itemText, bool isActive, bool isTicked)
 {
     Item i (std::move (itemText));
     i.itemID = itemResultID;
     i.isEnabled = isActive;
     i.isTicked = isTicked;
-    i.shortcutKeyDescription = annotation; /**SMODE add custom annotation who override shortcutKeyDescription */
-    i.colour = colour; /**SMODE add custom colour */
     addItem (std::move (i));
 }
 
@@ -1977,13 +1948,11 @@ void PopupMenu::addColouredItem (int itemResultID, String itemText, Colour itemT
 void PopupMenu::addCustomItem (int itemResultID,
                                std::unique_ptr<CustomComponent> cc,
                                std::unique_ptr<const PopupMenu> subMenu,
-                               const String& itemTitle, 
-                               bool isEnabled /*SMODE */)
+                               const String& itemTitle)
 {
     Item i;
     i.text = itemTitle;
     i.itemID = itemResultID;
-    i.isEnabled = isEnabled; // SMODE
     i.customComponent = cc.release();
     i.subMenu.reset (createCopyIfNotNull (subMenu.get()));
 
@@ -1993,7 +1962,7 @@ void PopupMenu::addCustomItem (int itemResultID,
     // the meaning of the item, or the contents of the submenu, as appropriate.
     // If you don't want this menu item to be press-able directly, pass "false" to the
     // constructor of the CustomComponent.
-    // SMODE Comment this to allow Custom Component without Label (colorlabel): jassert (! (HelperClasses::ItemComponent::isAccessibilityHandlerRequired (i) && itemTitle.isEmpty()));
+    jassert (! (HelperClasses::ItemComponent::isAccessibilityHandlerRequired (i) && itemTitle.isEmpty()));
 
     addItem (std::move (i));
 }
@@ -2219,16 +2188,13 @@ struct PopupMenuCompletionCallback final : public ModalComponentManager::Callbac
 
 int PopupMenu::showWithOptionalCallback (const Options& options,
                                          ModalComponentManager::Callback* userCallback,
-                                         [[maybe_unused]] bool canBeModal, Component** createdComponent /**  = nullptr SMODE TECH */)
+                                         [[maybe_unused]] bool canBeModal)
 {
     std::unique_ptr<ModalComponentManager::Callback> userCallbackDeleter (userCallback);
     std::unique_ptr<PopupMenuCompletionCallback> callback (new PopupMenuCompletionCallback());
 
     if (auto* window = createWindow (options, &(callback->managerOfChosenCommand)))
     {
-        if (createdComponent)
-           *createdComponent = window; // SMODE TECH
-
         callback->component.reset (window);
 
         PopupMenuSettings::menuWasHiddenBecauseOfAppChange = false;
@@ -2247,8 +2213,6 @@ int PopupMenu::showWithOptionalCallback (const Options& options,
         jassert (! (userCallback == nullptr && canBeModal));
        #endif
     }
-    else if (createdComponent)
-        *createdComponent = nullptr; // SMODE TECH
 
     return 0;
 }
@@ -2261,42 +2225,24 @@ int PopupMenu::showMenu (const Options& options)
 }
 #endif
 
-Component* PopupMenu::showMenuAsync (const Options& options)
+void PopupMenu::showMenuAsync (const Options& options)
 {
-    Component* createdComponent = nullptr; // SMODE TECH
-    showWithOptionalCallback (options, nullptr, false, &createdComponent);
-    return createdComponent;
+    showWithOptionalCallback (options, nullptr, false);
 }
 
-Component* PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Callback* userCallback)
+void PopupMenu::showMenuAsync (const Options& options, ModalComponentManager::Callback* userCallback)
 {
    #if ! JUCE_MODAL_LOOPS_PERMITTED
     jassert (userCallback != nullptr);
    #endif
-    Component* createdComponent = nullptr; // SMODE TECH
-    showWithOptionalCallback (options, userCallback, false, &createdComponent);
-    return createdComponent;
+
+    showWithOptionalCallback (options, userCallback, false);
 }
 
-Component* PopupMenu::showMenuAsync (const Options& options, std::function<void (int)> userCallback)
+void PopupMenu::showMenuAsync (const Options& options, std::function<void (int)> userCallback)
 {
-    Component* createdComponent = nullptr; // SMODE TECH
-    showWithOptionalCallback (options, ModalCallbackFunction::create (userCallback), false, &createdComponent);
-    return createdComponent;
+    showWithOptionalCallback (options, ModalCallbackFunction::create (userCallback), false);
 }
-
-// Smode Tech
-const juce::PopupMenu::Item* PopupMenu::getItemUnderMouseFromMenuComponent(Component* menuComponent)
-{
-  auto window = static_cast<const HelperClasses::MenuWindow*>(menuComponent);
-  if (!window || !window->currentChild)
-    return nullptr;
-  while (window->activeSubMenu && window->activeSubMenu->currentChild)
-    window = window->activeSubMenu.get();
-  auto current = window->currentChild.getComponent();
-  return current ? &current->item : nullptr;
-}
-// ---
 
 //==============================================================================
 #if JUCE_MODAL_LOOPS_PERMITTED
