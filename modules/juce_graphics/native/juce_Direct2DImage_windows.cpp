@@ -117,9 +117,16 @@ static bool readFromDirect2DBitmap (ComSmartPtr<ID2D1DeviceContext1> context,
                                                               size,
                                                               D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW);
 
+    if (readableBitmap == nullptr)
+        return false; // SMODE-TECH (dlrd/Smode-Issues#8160)
+
     const auto dstPoint = D2D1::Point2U();
     const auto srcRect = D2DUtilities::toRECT_U (D2DUtilities::rectFromSize (size));
-    readableBitmap->CopyFromBitmap (&dstPoint, bitmap, &srcRect);
+
+    // SMODE-TECH A removed graphics device makes the copy fail: the GPU content is lost, keep the previous software backup
+    // rather than reading a null mapping (dlrd/Smode-Issues#8160)
+    if (FAILED (readableBitmap->CopyFromBitmap (&dstPoint, bitmap, &srcRect)))
+        return false;
 
     // This is only used to construct a read-only BitmapData backed by a texture for conversion to a
     // software image
@@ -175,7 +182,11 @@ static bool readFromDirect2DBitmap (ComSmartPtr<ID2D1DeviceContext1> context,
             };
 
             D2D1_MAPPED_RECT mapped{};
-            bitmap->Map (D2D1_MAP_OPTIONS_READ, &mapped);
+
+            // SMODE-TECH Leave bd.data null when the mapping fails, the caller checks it before converting (dlrd/Smode-Issues#8160)
+            if (FAILED (bitmap->Map (D2D1_MAP_OPTIONS_READ, &mapped)) || mapped.bits == nullptr)
+                return;
+
             const auto dataEnd = mapped.bits + bitmap->GetPixelSize().height * mapped.pitch;
 
             bd.pixelFormat = pixelFormat;
@@ -194,10 +205,13 @@ static bool readFromDirect2DBitmap (ComSmartPtr<ID2D1DeviceContext1> context,
                                             (int) size.width,
                                             (int) size.height } };
 
-    Image::BitmapData dstData { Image { target }, Image::BitmapData::writeOnly };
-    dstData.convertFrom ({ srcImage, Image::BitmapData::readOnly });
+    const Image::BitmapData srcData { srcImage, Image::BitmapData::readOnly };
 
-    return true;
+    if (srcData.data == nullptr)
+        return false; // SMODE-TECH for (dlrd/Smode-Issues#8160)
+
+    Image::BitmapData dstData { Image { target }, Image::BitmapData::writeOnly };
+    return dstData.convertFrom (srcData);
 }
 
 /*  Returns new software bitmap storage with content matching the provided hardware bitmap. */
