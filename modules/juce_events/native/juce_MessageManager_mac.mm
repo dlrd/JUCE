@@ -375,7 +375,7 @@ void MessageManager::stopDispatchLoop()
     }
 }
 
-#if 1 // SMODE TECH: the nested dispatch pump stays available to oil::Thread::updateUntil() with the modal loops denied (dlrd/Smode-Issues#6927)
+#if JUCE_MODAL_LOOPS_PERMITTED
 bool MessageManager::runDispatchLoopUntil (int millisecondsToRunFor)
 {
     jassert (millisecondsToRunFor >= 0);
